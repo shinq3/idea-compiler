@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import { useI18n } from "@/i18n";
@@ -15,11 +16,14 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Collapsible, CollapsibleContent, CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
   ArrowLeft, MessageSquare, FileText, Database, FolderOpen,
-  History, Pencil,
+  History, Pencil, ChevronDown, ChevronRight,
 } from "lucide-react";
 import type { Project, Summary } from "@shared/schema";
 
@@ -28,6 +32,7 @@ export default function ProjectDetail() {
   const projectId = Number(params?.id);
   const queryClient = useQueryClient();
   const { t } = useI18n();
+  const [summaryOpen, setSummaryOpen] = useState(false);
 
   const { data: project, isLoading } = useQuery<Project>({
     queryKey: ["/api/projects", projectId],
@@ -125,96 +130,111 @@ export default function ProjectDetail() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <Card className="p-5">
-              <SummaryDisplay projectId={projectId} />
-            </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="p-5">
+            <ConfidenceGauge
+              budget={project.budgetConfidence}
+              timeline={project.timelineConfidence}
+              requirement={project.requirementConfidence}
+            />
+          </Card>
 
-            <Tabs defaultValue="input" className="w-full">
-              <TabsList className="w-full grid grid-cols-5">
-                <TabsTrigger value="input" data-testid="tab-input">
-                  <Pencil className="w-3 h-3 mr-1" />
-                  {t("tabs.input")}
-                </TabsTrigger>
-                <TabsTrigger value="history" data-testid="tab-history">
-                  <History className="w-3 h-3 mr-1" />
-                  {t("tabs.inputs")}
-                </TabsTrigger>
-                <TabsTrigger value="extracted" data-testid="tab-extracted">
-                  <Database className="w-3 h-3 mr-1" />
-                  {t("tabs.extracted")}
-                </TabsTrigger>
-                <TabsTrigger value="documents" data-testid="tab-documents">
-                  <FileText className="w-3 h-3 mr-1" />
-                  {t("tabs.documents")}
-                </TabsTrigger>
-                <TabsTrigger value="summaries" data-testid="tab-summaries">
-                  <FolderOpen className="w-3 h-3 mr-1" />
-                  {t("tabs.versions")}
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="input" className="mt-4">
-                <Card className="p-5">
-                  <InputPanel projectId={projectId} />
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="history" className="mt-4">
-                <Card className="p-5">
-                  <InputsHistory projectId={projectId} />
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="extracted" className="mt-4">
-                <Card className="p-5">
-                  <StructuredItemsPanel projectId={projectId} />
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="documents" className="mt-4">
-                <Card className="p-5">
-                  <DocumentsPanel projectId={projectId} hasSummary={!!latestSummary} />
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="summaries" className="mt-4">
-                <Card className="p-5">
-                  <SummaryHistory projectId={projectId} />
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          <div className="space-y-4">
-            <Card className="p-5">
-              <ConfidenceGauge
-                budget={project.budgetConfidence}
-                timeline={project.timelineConfidence}
-                requirement={project.requirementConfidence}
-              />
-            </Card>
-
-            <Card className="p-5 space-y-3">
-              <h3 className="font-semibold text-sm">{t("projectDetail.projectDetails")}</h3>
-              <DetailRow label={t("projectDetail.budgetRange")}>
-                {project.budgetMin || project.budgetMax
-                  ? `${project.budgetMin?.toLocaleString() || "?"} - ${project.budgetMax?.toLocaleString() || "?"}`
-                  : t("common.notSet")}
-              </DetailRow>
-              <DetailRow label={t("projectDetail.targetRelease")}>
-                {project.releaseDateTarget || t("common.notSet")}
-              </DetailRow>
-              <DetailRow label={t("projectDetail.created")}>
-                {new Date(project.createdAt).toLocaleDateString()}
-              </DetailRow>
-              <DetailRow label={t("projectDetail.lastUpdated")}>
-                {new Date(project.updatedAt).toLocaleDateString()}
-              </DetailRow>
-            </Card>
-          </div>
+          <Card className="p-5 space-y-3">
+            <h3 className="font-semibold text-sm">{t("projectDetail.projectDetails")}</h3>
+            <DetailRow label={t("projectDetail.budgetRange")}>
+              {project.budgetMin || project.budgetMax
+                ? `${project.budgetMin?.toLocaleString() || "?"} - ${project.budgetMax?.toLocaleString() || "?"}`
+                : t("common.notSet")}
+            </DetailRow>
+            <DetailRow label={t("projectDetail.targetRelease")}>
+              {project.releaseDateTarget || t("common.notSet")}
+            </DetailRow>
+            <DetailRow label={t("projectDetail.created")}>
+              {new Date(project.createdAt).toLocaleDateString()}
+            </DetailRow>
+            <DetailRow label={t("projectDetail.lastUpdated")}>
+              {new Date(project.updatedAt).toLocaleDateString()}
+            </DetailRow>
+          </Card>
         </div>
+
+        <Collapsible open={summaryOpen} onOpenChange={setSummaryOpen}>
+          <Card>
+            <CollapsibleTrigger asChild>
+              <button
+                className="flex items-center justify-between w-full p-5 text-left hover:bg-muted/50 transition-colors rounded-t-lg"
+                data-testid="button-toggle-summary"
+              >
+                <h3 className="font-semibold text-sm">{t("summary.title")}</h3>
+                {summaryOpen ? (
+                  <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                )}
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="px-5 pb-5">
+                <SummaryDisplay projectId={projectId} />
+              </div>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+
+        <Tabs defaultValue="input" className="w-full">
+          <TabsList className="w-full grid grid-cols-5">
+            <TabsTrigger value="input" data-testid="tab-input">
+              <Pencil className="w-3 h-3 mr-1" />
+              {t("tabs.input")}
+            </TabsTrigger>
+            <TabsTrigger value="history" data-testid="tab-history">
+              <History className="w-3 h-3 mr-1" />
+              {t("tabs.inputs")}
+            </TabsTrigger>
+            <TabsTrigger value="extracted" data-testid="tab-extracted">
+              <Database className="w-3 h-3 mr-1" />
+              {t("tabs.extracted")}
+            </TabsTrigger>
+            <TabsTrigger value="documents" data-testid="tab-documents">
+              <FileText className="w-3 h-3 mr-1" />
+              {t("tabs.documents")}
+            </TabsTrigger>
+            <TabsTrigger value="summaries" data-testid="tab-summaries">
+              <FolderOpen className="w-3 h-3 mr-1" />
+              {t("tabs.versions")}
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="input" className="mt-4">
+            <Card className="p-5">
+              <InputPanel projectId={projectId} />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="history" className="mt-4">
+            <Card className="p-5">
+              <InputsHistory projectId={projectId} />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="extracted" className="mt-4">
+            <Card className="p-5">
+              <StructuredItemsPanel projectId={projectId} />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="documents" className="mt-4">
+            <Card className="p-5">
+              <DocumentsPanel projectId={projectId} hasSummary={!!latestSummary} />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="summaries" className="mt-4">
+            <Card className="p-5">
+              <SummaryHistory projectId={projectId} />
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );
