@@ -1,15 +1,22 @@
 import OpenAI from "openai";
 
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error("OPENAI_API_KEY is not set. Please set it in environment variables.");
+}
+
 const openai = new OpenAI({
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  apiKey: process.env.OPENAI_API_KEY,
 });
+
+const MODEL = "gpt-4o";
+
+console.log("[openai] Using OPENAI_API_KEY (model: gpt-4o)");
 
 export async function extractStructuredData(text: string): Promise<{
   items: Array<{ category: string; value: any; confidence: number }>;
 }> {
   const response = await openai.chat.completions.create({
-    model: "gpt-5.2",
+    model: MODEL,
     messages: [
       {
         role: "system",
@@ -51,7 +58,7 @@ export async function generateSummary(
   }
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5.2",
+    model: MODEL,
     messages: [
       {
         role: "system",
@@ -132,7 +139,7 @@ Always cite sources. Be specific and professional.
 Write in the same language as the input data.`;
 
   const response = await openai.chat.completions.create({
-    model: "gpt-5.2",
+    model: MODEL,
     messages: [
       { role: "system", content: systemPrompt },
       {
