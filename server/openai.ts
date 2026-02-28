@@ -8,9 +8,9 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const MODEL = "gpt-4o";
+const MODEL = "o4-mini";
 
-console.log("[openai] Using OPENAI_API_KEY (model: gpt-4o)");
+console.log("[openai] Using OPENAI_API_KEY (model: o4-mini)");
 
 export async function extractStructuredData(text: string): Promise<{
   items: Array<{ category: string; value: any; confidence: number }>;
