@@ -92,7 +92,13 @@
     "textPlaceholder": "プロジェクト情報、要件、メモを入力...",
     "meetingPlaceholder": "会議メモ、議論のポイント、決定事項を貼り付け...",
     "inputAdded": "入力を追加しました",
-    "aiAnalyzing": "AIがサマリーを分析・更新中..."
+    "aiAnalyzing": "AIがサマリーを分析・更新中...",
+    "processingDialogTitle": "入力を受け付けました",
+    "processingDialogDescription": "AIによるデータ抽出とサマリー更新をバックグラウンドで処理しています。処理が完了すると、入力履歴・抽出データ・サマリーに自動的に反映されます。",
+    "processingComplete": "処理が完了しました",
+    "processingCompleteDescription": "データの抽出とサマリーの更新が完了しました。",
+    "processingError": "処理中にエラーが発生しました",
+    "understood": "了解"
   },
   "inputHistory": {
     "noInputs": "入力がまだありません。上の入力フォームから情報を追加してください。",

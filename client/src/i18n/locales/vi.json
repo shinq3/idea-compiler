@@ -92,7 +92,13 @@
     "textPlaceholder": "Nhap thong tin du an, yeu cau, ghi chu...",
     "meetingPlaceholder": "Dan ghi chu cuoc hop, diem thao luan, quyet dinh...",
     "inputAdded": "Da them nhap lieu",
-    "aiAnalyzing": "AI dang phan tich va cap nhat tom tat..."
+    "aiAnalyzing": "AI dang phan tich va cap nhat tom tat...",
+    "processingDialogTitle": "Da nhan nhap lieu",
+    "processingDialogDescription": "AI dang trich xuat du lieu va cap nhat tom tat o nen. Khi xu ly hoan tat, ket qua se tu dong hien thi trong lich su nhap, du lieu trich xuat va tom tat.",
+    "processingComplete": "Xu ly hoan tat",
+    "processingCompleteDescription": "Trich xuat du lieu va cap nhat tom tat da hoan thanh.",
+    "processingError": "Da xay ra loi trong qua trinh xu ly",
+    "understood": "Da hieu"
   },
   "inputHistory": {
     "noInputs": "Chua co nhap lieu nao. Su dung bieu mau nhap lieu o tren de them thong tin.",

@@ -92,7 +92,13 @@
     "textPlaceholder": "Enter project information, requirements, notes...",
     "meetingPlaceholder": "Paste meeting notes, discussion points, decisions...",
     "inputAdded": "Input added",
-    "aiAnalyzing": "AI is analyzing and updating the summary..."
+    "aiAnalyzing": "AI is analyzing and updating the summary...",
+    "processingDialogTitle": "Input received",
+    "processingDialogDescription": "AI is extracting data and updating the summary in the background. Once processing is complete, the results will automatically appear in the input history, extracted data, and summary.",
+    "processingComplete": "Processing complete",
+    "processingCompleteDescription": "Data extraction and summary update have been completed.",
+    "processingError": "An error occurred during processing",
+    "understood": "OK"
   },
   "inputHistory": {
     "noInputs": "No inputs yet. Use the input form above to add information.",

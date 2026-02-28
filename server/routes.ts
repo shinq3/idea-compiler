@@ -98,7 +98,43 @@ export async function registerRoutes(
       const project = await storage.createProject(parsed.data);
 
       if (req.file) {
-        await processUploadedFile(project.id, req.file);
+        const ext = path.extname(req.file.originalname).toLowerCase();
+        let rawText = "";
+        let inputType = "file";
+
+        if (ext === ".pdf") {
+          inputType = "rfp_pdf";
+          try {
+            const pdfParse = (await import("pdf-parse")).default;
+            const dataBuffer = fs.readFileSync(req.file.path);
+            const pdfData = await pdfParse(dataBuffer);
+            rawText = pdfData.text;
+            if (!rawText.trim()) {
+              rawText = "[PDF text extraction failed - this may be a scanned PDF requiring OCR (Phase 2)]";
+            }
+          } catch {
+            rawText = "[PDF text extraction failed - unsupported format]";
+          }
+        } else if ([".txt", ".md"].includes(ext)) {
+          rawText = fs.readFileSync(req.file.path, "utf-8");
+        } else {
+          rawText = `[Unsupported file format: ${ext}]`;
+        }
+
+        const input = await storage.createInput({
+          projectId: project.id,
+          type: inputType,
+          source: "file",
+          rawText,
+          filePath: req.file.path,
+          fileName: req.file.originalname,
+        });
+
+        if (rawText && !rawText.startsWith("[")) {
+          processInputText(project.id, input.id, rawText).catch((err) => {
+            console.error("Error processing RFP:", err);
+          });
+        }
       }
 
       const updatedProject = await storage.getProject(project.id);
@@ -150,6 +186,8 @@ export async function registerRoutes(
     }
   });
 
+  const processingStatus = new Map<string, { status: "processing" | "done" | "error"; message?: string }>();
+
   app.post("/api/projects/:id/inputs", upload.single("file"), async (req, res) => {
     try {
       const projectId = Number(req.params.id);
@@ -161,8 +199,50 @@ export async function registerRoutes(
       }
 
       if (req.file) {
-        const input = await processUploadedFile(projectId, req.file);
-        res.status(201).json(input);
+        const ext = path.extname(req.file.originalname).toLowerCase();
+        let rawText = "";
+        let inputType = "file";
+
+        if (ext === ".pdf") {
+          inputType = "rfp_pdf";
+          try {
+            const pdfParse = (await import("pdf-parse")).default;
+            const dataBuffer = fs.readFileSync(req.file.path);
+            const pdfData = await pdfParse(dataBuffer);
+            rawText = pdfData.text;
+            if (!rawText.trim()) {
+              rawText = "[PDF text extraction failed - this may be a scanned PDF requiring OCR (Phase 2)]";
+            }
+          } catch {
+            rawText = "[PDF text extraction failed - unsupported format]";
+          }
+        } else if ([".txt", ".md"].includes(ext)) {
+          rawText = fs.readFileSync(req.file.path, "utf-8");
+        } else {
+          rawText = `[Unsupported file format: ${ext}]`;
+        }
+
+        const input = await storage.createInput({
+          projectId,
+          type: inputType,
+          source: "file",
+          rawText,
+          filePath: req.file.path,
+          fileName: req.file.originalname,
+        });
+
+        const taskKey = `${projectId}-${input.id}`;
+        processingStatus.set(taskKey, { status: "processing" });
+
+        if (rawText && !rawText.startsWith("[")) {
+          processInputText(projectId, input.id, rawText)
+            .then(() => { processingStatus.set(taskKey, { status: "done" }); })
+            .catch((err) => { processingStatus.set(taskKey, { status: "error", message: err.message }); });
+        } else {
+          processingStatus.set(taskKey, { status: "done" });
+        }
+
+        res.status(201).json({ ...input, taskKey });
       } else if (req.body.rawText && typeof req.body.rawText === "string" && req.body.rawText.trim()) {
         const inputType = VALID_INPUT_TYPES.includes(req.body.type) ? req.body.type : "text";
 
@@ -177,13 +257,28 @@ export async function registerRoutes(
           rawText: req.body.rawText.trim(),
         });
 
-        await processInputText(projectId, input.id, input.rawText);
-        res.status(201).json(input);
+        const taskKey = `${projectId}-${input.id}`;
+        processingStatus.set(taskKey, { status: "processing" });
+
+        processInputText(projectId, input.id, input.rawText)
+          .then(() => { processingStatus.set(taskKey, { status: "done" }); })
+          .catch((err) => { processingStatus.set(taskKey, { status: "error", message: err.message }); });
+
+        res.status(201).json({ ...input, taskKey });
       } else {
         res.status(400).json({ message: "No text or file provided" });
       }
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/processing-status/:taskKey", (req, res) => {
+    const status = processingStatus.get(req.params.taskKey);
+    if (!status) return res.json({ status: "unknown" });
+    res.json(status);
+    if (status.status === "done" || status.status === "error") {
+      setTimeout(() => processingStatus.delete(req.params.taskKey), 60000);
     }
   });
 
@@ -278,47 +373,6 @@ export async function registerRoutes(
   });
 
   return httpServer;
-}
-
-async function processUploadedFile(projectId: number, file: Express.Multer.File) {
-  const ext = path.extname(file.originalname).toLowerCase();
-  let rawText = "";
-  let inputType = "file";
-
-  if (ext === ".pdf") {
-    inputType = "rfp_pdf";
-    try {
-      const pdfParse = (await import("pdf-parse")).default;
-      const dataBuffer = fs.readFileSync(file.path);
-      const pdfData = await pdfParse(dataBuffer);
-      rawText = pdfData.text;
-
-      if (!rawText.trim()) {
-        rawText = "[PDF text extraction failed - this may be a scanned PDF requiring OCR (Phase 2)]";
-      }
-    } catch {
-      rawText = "[PDF text extraction failed - unsupported format]";
-    }
-  } else if ([".txt", ".md"].includes(ext)) {
-    rawText = fs.readFileSync(file.path, "utf-8");
-  } else {
-    rawText = `[Unsupported file format: ${ext}]`;
-  }
-
-  const input = await storage.createInput({
-    projectId,
-    type: inputType,
-    source: "file",
-    rawText,
-    filePath: file.path,
-    fileName: file.originalname,
-  });
-
-  if (rawText && !rawText.startsWith("[")) {
-    await processInputText(projectId, input.id, rawText);
-  }
-
-  return input;
 }
 
 async function processInputText(projectId: number, inputId: number, text: string) {
