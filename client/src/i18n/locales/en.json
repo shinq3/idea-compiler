@@ -1,0 +1,164 @@
+{
+  "app": {
+    "name": "CaseNurture"
+  },
+  "common": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "delete": "Delete",
+    "view": "View",
+    "download": "Download",
+    "downloadMd": "Download .md",
+    "processing": "Processing...",
+    "creating": "Creating...",
+    "error": "Error",
+    "notSet": "Not set",
+    "items": "items",
+    "confidence": "confidence",
+    "version": "Version",
+    "meetings": "meetings",
+    "owner": "Owner"
+  },
+  "nav": {
+    "backToDashboard": "Back to Dashboard"
+  },
+  "dashboard": {
+    "title": "Projects",
+    "searchPlaceholder": "Search projects...",
+    "newProject": "New Project",
+    "noProjects": "No projects yet",
+    "noMatchingProjects": "No matching projects",
+    "noProjectsDescription": "Create your first project to get started. You can upload an RFP PDF or just start with a title.",
+    "noMatchingDescription": "Try adjusting your search or filters.",
+    "table": {
+      "project": "Project",
+      "customer": "Customer",
+      "status": "Status",
+      "meetings": "Meetings",
+      "confidence": "Confidence",
+      "budget": "Budget",
+      "targetDate": "Target Date",
+      "updated": "Updated"
+    }
+  },
+  "status": {
+    "all": "All Statuses",
+    "discovery": "Discovery",
+    "proposal": "Proposal",
+    "negotiation": "Negotiation",
+    "won": "Won",
+    "lost": "Lost"
+  },
+  "createProject": {
+    "title": "Create New Project",
+    "description": "Start with just a title, or upload an RFP PDF to auto-populate details.",
+    "projectTitle": "Project Title",
+    "projectTitleRequired": "Project title is required",
+    "projectTitlePlaceholder": "e.g. E-Commerce Platform Redesign",
+    "customer": "Customer",
+    "customerPlaceholder": "Company name",
+    "owner": "Owner",
+    "ownerPlaceholder": "Project owner",
+    "budgetMin": "Budget Min",
+    "budgetMax": "Budget Max",
+    "targetReleaseDate": "Target Release Date",
+    "rfpDocument": "RFP Document (PDF)",
+    "uploadRfp": "Upload RFP (PDF/TXT/MD)",
+    "createProject": "Create Project",
+    "projectCreated": "Project created",
+    "pdfAnalyzing": "PDF is being analyzed..."
+  },
+  "projectDetail": {
+    "projectNotFound": "Project not found",
+    "meetingsCount": "{count} meetings",
+    "projectDetails": "Project Details",
+    "budgetRange": "Budget Range",
+    "targetRelease": "Target Release",
+    "created": "Created",
+    "lastUpdated": "Last Updated"
+  },
+  "tabs": {
+    "input": "Input",
+    "inputs": "Inputs",
+    "extracted": "Extracted",
+    "documents": "Documents",
+    "versions": "Versions"
+  },
+  "input": {
+    "textMemo": "Text / Memo",
+    "meetingNotes": "Meeting Notes",
+    "uploadFile": "Upload File",
+    "textPlaceholder": "Enter project information, requirements, notes...",
+    "meetingPlaceholder": "Paste meeting notes, discussion points, decisions...",
+    "inputAdded": "Input added",
+    "aiAnalyzing": "AI is analyzing and updating the summary..."
+  },
+  "inputHistory": {
+    "noInputs": "No inputs yet. Use the input form above to add information.",
+    "typeLabels": {
+      "text": "Text",
+      "meeting_note": "Meeting Notes",
+      "rfp_pdf": "RFP PDF",
+      "file": "File"
+    }
+  },
+  "summary": {
+    "title": "Project Summary",
+    "noSummary": "No summary yet",
+    "noSummaryDescription": "Add inputs (text, meeting notes, or RFP PDFs) to automatically generate a project summary.",
+    "overview": "Overview",
+    "challenges": "Challenges",
+    "objectives": "Objectives",
+    "scope": "Scope",
+    "featureCandidates": "Feature Candidates",
+    "budget": "Budget",
+    "timeline": "Timeline",
+    "risks": "Risks",
+    "unresolvedItems": "Unresolved Items",
+    "nextActions": "Next Actions"
+  },
+  "summaryHistory": {
+    "noHistory": "No summary history yet."
+  },
+  "structuredItems": {
+    "noItems": "No structured data extracted yet. Add inputs to extract requirements, decisions, and more.",
+    "categories": {
+      "requirement": "Requirement",
+      "issue": "Issue",
+      "decision": "Decision",
+      "constraint": "Constraint",
+      "budget": "Budget",
+      "timeline": "Timeline",
+      "risk": "Risk",
+      "term": "Term",
+      "action": "Action"
+    }
+  },
+  "documents": {
+    "generateKickoff": "Generate Kickoff Doc",
+    "generateProposal": "Generate Feature Proposal",
+    "addInputsFirst": "Add inputs and wait for the summary to be generated before creating documents.",
+    "noDocuments": "No documents generated yet.",
+    "kickoffDocument": "Kickoff Document",
+    "featureProposal": "Feature Proposal",
+    "documentGenerated": "Document generated successfully",
+    "documentDeleted": "Document deleted"
+  },
+  "confidence": {
+    "title": "Information Confidence",
+    "budget": "Budget",
+    "timeline": "Timeline",
+    "requirements": "Requirements"
+  },
+  "notFound": {
+    "title": "404 Page Not Found",
+    "description": "The page you are looking for does not exist."
+  },
+  "language": {
+    "label": "Language",
+    "ja": "日本語",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  }
+}

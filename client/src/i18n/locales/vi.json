@@ -1,0 +1,164 @@
+{
+  "app": {
+    "name": "CaseNurture"
+  },
+  "common": {
+    "back": "Quay lai",
+    "cancel": "Huy",
+    "submit": "Gui",
+    "delete": "Xoa",
+    "view": "Xem",
+    "download": "Tai xuong",
+    "downloadMd": "Tai xuong .md",
+    "processing": "Dang xu ly...",
+    "creating": "Dang tao...",
+    "error": "Loi",
+    "notSet": "Chua dat",
+    "items": "muc",
+    "confidence": "do tin cay",
+    "version": "Phien ban",
+    "meetings": "cuoc hop",
+    "owner": "Nguoi phu trach"
+  },
+  "nav": {
+    "backToDashboard": "Quay lai Bang dieu khien"
+  },
+  "dashboard": {
+    "title": "Du an",
+    "searchPlaceholder": "Tim kiem du an...",
+    "newProject": "Du an moi",
+    "noProjects": "Chua co du an nao",
+    "noMatchingProjects": "Khong tim thay du an phu hop",
+    "noProjectsDescription": "Tao du an dau tien cua ban. Ban co the tai len PDF RFP hoac chi can bat dau voi tieu de.",
+    "noMatchingDescription": "Thu dieu chinh tim kiem hoac bo loc.",
+    "table": {
+      "project": "Du an",
+      "customer": "Khach hang",
+      "status": "Trang thai",
+      "meetings": "Cuoc hop",
+      "confidence": "Do tin cay",
+      "budget": "Ngan sach",
+      "targetDate": "Ngay muc tieu",
+      "updated": "Cap nhat"
+    }
+  },
+  "status": {
+    "all": "Tat ca trang thai",
+    "discovery": "Kham pha",
+    "proposal": "De xuat",
+    "negotiation": "Dam phan",
+    "won": "Thang",
+    "lost": "Thua"
+  },
+  "createProject": {
+    "title": "Tao du an moi",
+    "description": "Bat dau chi voi tieu de, hoac tai len PDF RFP de tu dong dien thong tin.",
+    "projectTitle": "Ten du an",
+    "projectTitleRequired": "Ten du an la bat buoc",
+    "projectTitlePlaceholder": "Vi du: Thiet ke lai nen tang Thuong mai dien tu",
+    "customer": "Khach hang",
+    "customerPlaceholder": "Ten cong ty",
+    "owner": "Nguoi phu trach",
+    "ownerPlaceholder": "Nguoi phu trach du an",
+    "budgetMin": "Ngan sach toi thieu",
+    "budgetMax": "Ngan sach toi da",
+    "targetReleaseDate": "Ngay phat hanh muc tieu",
+    "rfpDocument": "Tai lieu RFP (PDF)",
+    "uploadRfp": "Tai len RFP (PDF/TXT/MD)",
+    "createProject": "Tao du an",
+    "projectCreated": "Da tao du an",
+    "pdfAnalyzing": "Dang phan tich PDF..."
+  },
+  "projectDetail": {
+    "projectNotFound": "Khong tim thay du an",
+    "meetingsCount": "{count} cuoc hop",
+    "projectDetails": "Chi tiet du an",
+    "budgetRange": "Pham vi ngan sach",
+    "targetRelease": "Ngay phat hanh muc tieu",
+    "created": "Ngay tao",
+    "lastUpdated": "Cap nhat lan cuoi"
+  },
+  "tabs": {
+    "input": "Nhap lieu",
+    "inputs": "Lich su nhap",
+    "extracted": "Du lieu trich xuat",
+    "documents": "Tai lieu",
+    "versions": "Phien ban"
+  },
+  "input": {
+    "textMemo": "Van ban / Ghi chu",
+    "meetingNotes": "Ghi chu cuoc hop",
+    "uploadFile": "Tai len tap tin",
+    "textPlaceholder": "Nhap thong tin du an, yeu cau, ghi chu...",
+    "meetingPlaceholder": "Dan ghi chu cuoc hop, diem thao luan, quyet dinh...",
+    "inputAdded": "Da them nhap lieu",
+    "aiAnalyzing": "AI dang phan tich va cap nhat tom tat..."
+  },
+  "inputHistory": {
+    "noInputs": "Chua co nhap lieu nao. Su dung bieu mau nhap lieu o tren de them thong tin.",
+    "typeLabels": {
+      "text": "Van ban",
+      "meeting_note": "Ghi chu cuoc hop",
+      "rfp_pdf": "RFP PDF",
+      "file": "Tap tin"
+    }
+  },
+  "summary": {
+    "title": "Tom tat du an",
+    "noSummary": "Chua co tom tat",
+    "noSummaryDescription": "Them nhap lieu (van ban, ghi chu cuoc hop hoac PDF RFP) de tu dong tao tom tat du an.",
+    "overview": "Tong quan",
+    "challenges": "Thach thuc",
+    "objectives": "Muc tieu",
+    "scope": "Pham vi",
+    "featureCandidates": "Tinh nang de xuat",
+    "budget": "Ngan sach",
+    "timeline": "Tien do",
+    "risks": "Rui ro",
+    "unresolvedItems": "Van de chua giai quyet",
+    "nextActions": "Hanh dong tiep theo"
+  },
+  "summaryHistory": {
+    "noHistory": "Chua co lich su tom tat."
+  },
+  "structuredItems": {
+    "noItems": "Chua co du lieu co cau truc nao duoc trich xuat. Them nhap lieu de trich xuat yeu cau, quyet dinh va nhieu hon.",
+    "categories": {
+      "requirement": "Yeu cau",
+      "issue": "Van de",
+      "decision": "Quyet dinh",
+      "constraint": "Rang buoc",
+      "budget": "Ngan sach",
+      "timeline": "Tien do",
+      "risk": "Rui ro",
+      "term": "Thuat ngu",
+      "action": "Hanh dong"
+    }
+  },
+  "documents": {
+    "generateKickoff": "Tao tai lieu Kickoff",
+    "generateProposal": "Tao de xuat tinh nang",
+    "addInputsFirst": "Them nhap lieu va doi tom tat duoc tao truoc khi tao tai lieu.",
+    "noDocuments": "Chua co tai lieu nao duoc tao.",
+    "kickoffDocument": "Tai lieu Kickoff",
+    "featureProposal": "De xuat tinh nang",
+    "documentGenerated": "Da tao tai lieu thanh cong",
+    "documentDeleted": "Da xoa tai lieu"
+  },
+  "confidence": {
+    "title": "Do tin cay thong tin",
+    "budget": "Ngan sach",
+    "timeline": "Tien do",
+    "requirements": "Yeu cau"
+  },
+  "notFound": {
+    "title": "404 Khong tim thay trang",
+    "description": "Trang ban dang tim khong ton tai."
+  },
+  "language": {
+    "label": "Ngon ngu",
+    "ja": "日本語",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  }
+}

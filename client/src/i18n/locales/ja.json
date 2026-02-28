@@ -1,0 +1,164 @@
+{
+  "app": {
+    "name": "CaseNurture"
+  },
+  "common": {
+    "back": "戻る",
+    "cancel": "キャンセル",
+    "submit": "送信",
+    "delete": "削除",
+    "view": "表示",
+    "download": "ダウンロード",
+    "downloadMd": ".md をダウンロード",
+    "processing": "処理中...",
+    "creating": "作成中...",
+    "error": "エラー",
+    "notSet": "未設定",
+    "items": "件",
+    "confidence": "確信度",
+    "version": "バージョン",
+    "meetings": "会議",
+    "owner": "担当者"
+  },
+  "nav": {
+    "backToDashboard": "ダッシュボードに戻る"
+  },
+  "dashboard": {
+    "title": "案件一覧",
+    "searchPlaceholder": "案件を検索...",
+    "newProject": "新規案件",
+    "noProjects": "案件がありません",
+    "noMatchingProjects": "一致する案件がありません",
+    "noProjectsDescription": "最初の案件を作成しましょう。RFP PDFのアップロード、またはタイトルだけで作成できます。",
+    "noMatchingDescription": "検索条件やフィルターを調整してみてください。",
+    "table": {
+      "project": "案件名",
+      "customer": "顧客",
+      "status": "ステータス",
+      "meetings": "会議数",
+      "confidence": "確度",
+      "budget": "予算",
+      "targetDate": "目標日",
+      "updated": "更新日"
+    }
+  },
+  "status": {
+    "all": "すべてのステータス",
+    "discovery": "ディスカバリー",
+    "proposal": "提案",
+    "negotiation": "交渉中",
+    "won": "受注",
+    "lost": "失注"
+  },
+  "createProject": {
+    "title": "新規案件作成",
+    "description": "タイトルだけで作成するか、RFP PDFをアップロードして詳細を自動入力します。",
+    "projectTitle": "案件名",
+    "projectTitleRequired": "案件名は必須です",
+    "projectTitlePlaceholder": "例: ECプラットフォーム刷新",
+    "customer": "顧客",
+    "customerPlaceholder": "会社名",
+    "owner": "担当者",
+    "ownerPlaceholder": "プロジェクト担当者",
+    "budgetMin": "予算下限",
+    "budgetMax": "予算上限",
+    "targetReleaseDate": "目標リリース日",
+    "rfpDocument": "RFP資料 (PDF)",
+    "uploadRfp": "RFPをアップロード (PDF/TXT/MD)",
+    "createProject": "案件を作成",
+    "projectCreated": "案件を作成しました",
+    "pdfAnalyzing": "PDFを解析中..."
+  },
+  "projectDetail": {
+    "projectNotFound": "案件が見つかりません",
+    "meetingsCount": "{count} 回の会議",
+    "projectDetails": "案件詳細",
+    "budgetRange": "予算レンジ",
+    "targetRelease": "目標リリース",
+    "created": "作成日",
+    "lastUpdated": "最終更新日"
+  },
+  "tabs": {
+    "input": "入力",
+    "inputs": "入力履歴",
+    "extracted": "抽出データ",
+    "documents": "ドキュメント",
+    "versions": "バージョン"
+  },
+  "input": {
+    "textMemo": "テキスト / メモ",
+    "meetingNotes": "会議メモ",
+    "uploadFile": "ファイルアップロード",
+    "textPlaceholder": "プロジェクト情報、要件、メモを入力...",
+    "meetingPlaceholder": "会議メモ、議論のポイント、決定事項を貼り付け...",
+    "inputAdded": "入力を追加しました",
+    "aiAnalyzing": "AIがサマリーを分析・更新中..."
+  },
+  "inputHistory": {
+    "noInputs": "入力がまだありません。上の入力フォームから情報を追加してください。",
+    "typeLabels": {
+      "text": "テキスト",
+      "meeting_note": "会議メモ",
+      "rfp_pdf": "RFP PDF",
+      "file": "ファイル"
+    }
+  },
+  "summary": {
+    "title": "案件サマリー",
+    "noSummary": "サマリーがまだありません",
+    "noSummaryDescription": "入力（テキスト、会議メモ、RFP PDF）を追加すると、自動的にサマリーが生成されます。",
+    "overview": "概要",
+    "challenges": "課題",
+    "objectives": "目的",
+    "scope": "スコープ",
+    "featureCandidates": "機能候補",
+    "budget": "予算",
+    "timeline": "スケジュール",
+    "risks": "リスク",
+    "unresolvedItems": "未確定事項",
+    "nextActions": "次のアクション"
+  },
+  "summaryHistory": {
+    "noHistory": "サマリー履歴がまだありません。"
+  },
+  "structuredItems": {
+    "noItems": "構造化データはまだ抽出されていません。入力を追加すると、要件や決定事項などが自動抽出されます。",
+    "categories": {
+      "requirement": "要件",
+      "issue": "課題",
+      "decision": "決定事項",
+      "constraint": "制約",
+      "budget": "予算",
+      "timeline": "スケジュール",
+      "risk": "リスク",
+      "term": "用語",
+      "action": "アクション"
+    }
+  },
+  "documents": {
+    "generateKickoff": "キックオフ資料を生成",
+    "generateProposal": "機能提案書を生成",
+    "addInputsFirst": "ドキュメントを作成する前に、入力を追加してサマリーが生成されるのをお待ちください。",
+    "noDocuments": "まだドキュメントが生成されていません。",
+    "kickoffDocument": "キックオフ資料",
+    "featureProposal": "機能提案書",
+    "documentGenerated": "ドキュメントを生成しました",
+    "documentDeleted": "ドキュメントを削除しました"
+  },
+  "confidence": {
+    "title": "情報確度",
+    "budget": "予算",
+    "timeline": "スケジュール",
+    "requirements": "要件"
+  },
+  "notFound": {
+    "title": "404 ページが見つかりません",
+    "description": "お探しのページは存在しません。"
+  },
+  "language": {
+    "label": "言語",
+    "ja": "日本語",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  }
+}
