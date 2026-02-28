@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { useLocation } from "wouter";
 import { useI18n } from "@/i18n";
 import { Layout } from "@/components/layout";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
@@ -28,6 +28,7 @@ const statusColors: Record<string, string> = {
 export default function Dashboard() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [, navigate] = useLocation();
   const { t } = useI18n();
 
   const { data: projects, isLoading } = useQuery<Project[]>({
@@ -117,14 +118,17 @@ export default function Dashboard() {
               </TableHeader>
               <TableBody>
                 {filtered.map((project) => (
-                  <TableRow key={project.id} className="cursor-pointer hover-elevate" data-testid={`row-project-${project.id}`}>
+                  <TableRow
+                    key={project.id}
+                    className="cursor-pointer hover-elevate"
+                    data-testid={`row-project-${project.id}`}
+                    onClick={() => navigate(`/projects/${project.id}`)}
+                  >
                     <TableCell>
-                      <Link href={`/projects/${project.id}`}>
-                        <div className="flex items-center gap-2" data-testid={`link-project-${project.id}`}>
-                          <span className="font-medium text-sm">{project.title}</span>
-                          <ArrowUpRight className="w-3 h-3 text-muted-foreground" />
-                        </div>
-                      </Link>
+                      <div className="flex items-center gap-2" data-testid={`link-project-${project.id}`}>
+                        <span className="font-medium text-sm">{project.title}</span>
+                        <ArrowUpRight className="w-3 h-3 text-muted-foreground" />
+                      </div>
                     </TableCell>
                     <TableCell>
                       <span className="text-sm text-muted-foreground">
