@@ -7,7 +7,7 @@ A web application that helps nurture business projects from RFP to kickoff. Proj
 - **Frontend**: React + TypeScript + Vite + TailwindCSS + shadcn/ui
 - **Backend**: Express.js (Node/TypeScript)
 - **Database**: PostgreSQL (via Drizzle ORM)
-- **AI**: OpenAI via Replit AI Integrations (gpt-5.2 for analysis/generation)
+- **AI**: OpenAI API (o4-mini model, requires OPENAI_API_KEY env var)
 - **File Processing**: pdf-parse for PDF text extraction, multer for file uploads
 
 ## Key Features
@@ -18,6 +18,7 @@ A web application that helps nurture business projects from RFP to kickoff. Proj
 5. **Auto-Summary** - AI generates and versions project summaries
 6. **Document Generation** - Kickoff documents and feature proposals
 7. **Confidence Gauges** - Budget/timeline/requirement confidence tracking
+8. **PWA Support** - Installable as native app on mobile/desktop, offline caching
 
 ## Data Flow
 Input (text/file) → PDF extraction (if PDF) → AI structured extraction → Summary update → DB save
@@ -70,7 +71,8 @@ shared/
 
 ## Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string (auto-provisioned)
-- `AI_INTEGRATIONS_OPENAI_API_KEY` / `AI_INTEGRATIONS_OPENAI_BASE_URL` - Auto-set by Replit AI Integrations
+- `OPENAI_API_KEY` - OpenAI API key (required, server won't start without it)
+- `SESSION_SECRET` - Session secret
 
 ## API Endpoints
 - `GET/POST /api/projects` - List/create projects
