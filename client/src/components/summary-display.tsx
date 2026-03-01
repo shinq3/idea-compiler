@@ -3,7 +3,6 @@ import { useI18n } from "@/i18n";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Target, AlertTriangle, Lightbulb, DollarSign, Calendar,
   HelpCircle, ArrowRight, ClipboardList, History
@@ -81,8 +80,8 @@ export function SummaryDisplay({ projectId }: SummaryDisplayProps) {
         </Badge>
       </div>
 
-      <ScrollArea className="max-h-[600px]">
-        <div className="space-y-3 pr-3">
+      <div>
+        <div className="space-y-3">
           {pickStr(s.overview) && (
             <SummarySection icon={Target} label={t("summary.overview")} content={pickStr(s.overview)} testId="text-summary-overview" />
           )}
@@ -114,7 +113,7 @@ export function SummaryDisplay({ projectId }: SummaryDisplayProps) {
             <SummaryListSection icon={ArrowRight} label={t("summary.nextActions")} items={pickArr(s.nextActions)} testId="list-actions" />
           )}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }
