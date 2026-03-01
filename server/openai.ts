@@ -12,6 +12,17 @@ const MODEL = "o4-mini";
 
 console.log("[openai] Using OPENAI_API_KEY (model: o4-mini)");
 
+export async function transcribeAudio(filePath: string, fileName: string): Promise<string> {
+  const fs = await import("fs");
+  const file = fs.createReadStream(filePath);
+  const response = await openai.audio.transcriptions.create({
+    model: "whisper-1",
+    file: file,
+    language: undefined,
+  });
+  return response.text;
+}
+
 export async function extractStructuredData(text: string): Promise<{
   items: Array<{ category: string; value: any; confidence: number }>;
 }> {

@@ -19,6 +19,7 @@ A web application that helps nurture business projects from RFP to kickoff. Proj
 6. **Document Generation** - Kickoff documents and feature proposals
 7. **Confidence Gauges** - Budget/timeline/requirement confidence tracking
 8. **PWA Support** - Installable as native app on mobile/desktop, offline caching
+9. **Voice Input** - Browser-based audio recording → OpenAI Whisper transcription → text area insertion
 
 ## Data Flow
 Input (text/file) → PDF extraction (if PDF) → AI structured extraction → Summary update → DB save

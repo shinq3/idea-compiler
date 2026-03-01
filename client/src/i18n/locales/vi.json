@@ -98,7 +98,14 @@
     "processingComplete": "Xu ly hoan tat",
     "processingCompleteDescription": "Trich xuat du lieu va cap nhat tom tat da hoan thanh.",
     "processingError": "Da xay ra loi trong qua trinh xu ly",
-    "understood": "Da hieu"
+    "understood": "Da hieu",
+    "voiceRecord": "Nhap giong noi",
+    "recording": "Dang ghi am...",
+    "transcribing": "Dang chuyen doi giong noi...",
+    "recordingStop": "Dung ghi am",
+    "voicePermissionDenied": "Quyen truy cap micro bi tu choi. Vui long kiem tra cai dat trinh duyet.",
+    "voiceNotSupported": "Trinh duyet nay khong ho tro ghi am giong noi.",
+    "transcriptionFailed": "Chuyen doi giong noi that bai"
   },
   "inputHistory": {
     "noInputs": "Chua co nhap lieu nao. Su dung bieu mau nhap lieu o tren de them thong tin.",

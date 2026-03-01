@@ -5,7 +5,7 @@ import path from "path";
 import fs from "fs";
 import { z } from "zod";
 import { storage } from "./storage";
-import { extractStructuredData, generateSummary, generateDocument } from "./openai";
+import { extractStructuredData, generateSummary, generateDocument, transcribeAudio } from "./openai";
 
 const uploadDir = path.resolve("uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -13,6 +13,7 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".md"];
+const ALLOWED_AUDIO_EXTENSIONS = [".webm", ".mp4", ".m4a", ".wav", ".mp3", ".ogg"];
 const VALID_STATUSES = ["discovery", "proposal", "negotiation", "won", "lost"];
 const VALID_INPUT_TYPES = ["text", "meeting_note", "rfp_pdf", "file"];
 
@@ -51,6 +52,25 @@ const upload = multer({
       cb(null, true);
     } else {
       cb(new Error(`Unsupported file type: ${ext}. Allowed: ${ALLOWED_EXTENSIONS.join(", ")}`));
+    }
+  },
+});
+
+const audioUpload = multer({
+  storage: multer.diskStorage({
+    destination: uploadDir,
+    filename: (_req, file, cb) => {
+      const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, "audio-" + unique + path.extname(file.originalname));
+    },
+  }),
+  limits: { fileSize: 25 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (ALLOWED_AUDIO_EXTENSIONS.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`Unsupported audio type: ${ext}. Allowed: ${ALLOWED_AUDIO_EXTENSIONS.join(", ")}`));
     }
   },
 });
@@ -269,6 +289,22 @@ export async function registerRoutes(
         res.status(400).json({ message: "No text or file provided" });
       }
     } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/transcribe", audioUpload.single("audio"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No audio file provided" });
+      }
+      const text = await transcribeAudio(req.file.path, req.file.originalname);
+      try { fs.unlinkSync(req.file.path); } catch {}
+      res.json({ text });
+    } catch (error: any) {
+      if (req.file) {
+        try { fs.unlinkSync(req.file.path); } catch {}
+      }
       res.status(500).json({ message: error.message });
     }
   });

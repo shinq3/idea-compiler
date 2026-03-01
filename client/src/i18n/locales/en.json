@@ -98,7 +98,14 @@
     "processingComplete": "Processing complete",
     "processingCompleteDescription": "Data extraction and summary update have been completed.",
     "processingError": "An error occurred during processing",
-    "understood": "OK"
+    "understood": "OK",
+    "voiceRecord": "Voice Input",
+    "recording": "Recording...",
+    "transcribing": "Transcribing...",
+    "recordingStop": "Stop Recording",
+    "voicePermissionDenied": "Microphone access denied. Please check your browser settings.",
+    "voiceNotSupported": "Voice recording is not supported in this browser.",
+    "transcriptionFailed": "Voice transcription failed"
   },
   "inputHistory": {
     "noInputs": "No inputs yet. Use the input form above to add information.",
