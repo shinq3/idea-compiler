@@ -29,6 +29,8 @@ Input (text/file) → PDF extraction (if PDF) → AI structured extraction (mult
 - **Structured Items**: `valueJson.title` and `valueJson.description` are `{ ja, en, vi }` objects
 - **Summaries**: `summaryJson` is `{ ja: { overview, ... }, en: { ... }, vi: { ... } }`
 - **Documents**: `contentJson` is `{ ja: "markdown", en: "markdown", vi: "markdown" }` (fallback: `contentMd`)
+- **Project Names**: `titleJson` and `customerNameJson` JSONB columns on `projects` table; `{ ja, en, vi }` objects
+- **Input Text**: `translatedJson` JSONB column on `inputs` table; `{ ja, en, vi }` objects
 - **Backward Compatibility**: `pickLang()` helper handles both old (single string) and new (multilingual object) formats
 
 ## Data Models

@@ -6,7 +6,9 @@ import { z } from "zod";
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
+  titleJson: jsonb("title_json"),
   customerName: text("customer_name"),
+  customerNameJson: jsonb("customer_name_json"),
   status: text("status").notNull().default("discovery"),
   owner: text("owner"),
   budgetMin: integer("budget_min"),
@@ -26,6 +28,7 @@ export const inputs = pgTable("inputs", {
   type: text("type").notNull(),
   source: text("source").notNull(),
   rawText: text("raw_text").notNull(),
+  translatedJson: jsonb("translated_json"),
   filePath: text("file_path"),
   fileName: text("file_name"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),

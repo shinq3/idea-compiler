@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FileText, MessageSquare, File, Clock } from "lucide-react";
-import type { Input } from "@shared/schema";
+import { pickLang, type Input } from "@shared/schema";
 
 const typeIcons: Record<string, any> = {
   text: MessageSquare,
@@ -17,8 +17,16 @@ interface InputsHistoryProps {
   projectId: number;
 }
 
+function getInputText(input: Input, locale: string): string {
+  if (input.translatedJson) {
+    const result = pickLang(input.translatedJson, locale);
+    if (result && typeof result === "string") return result;
+  }
+  return input.rawText;
+}
+
 export function InputsHistory({ projectId }: InputsHistoryProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { data: inputs, isLoading } = useQuery<Input[]>({
     queryKey: [`/api/projects/${projectId}/inputs`],
   });
@@ -46,6 +54,7 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
       <div className="space-y-3 pr-3">
         {inputs.map((input) => {
           const Icon = typeIcons[input.type] || File;
+          const displayText = getInputText(input, locale);
           return (
             <div
               key={input.id}
@@ -70,8 +79,8 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground line-clamp-3">
-                {input.rawText.substring(0, 300)}
-                {input.rawText.length > 300 && "..."}
+                {displayText.substring(0, 300)}
+                {displayText.length > 300 && "..."}
               </p>
             </div>
           );

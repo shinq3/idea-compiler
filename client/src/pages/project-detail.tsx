@@ -25,13 +25,13 @@ import {
   ArrowLeft, MessageSquare, FileText, Database, FolderOpen,
   History, Pencil, ChevronDown, ChevronRight,
 } from "lucide-react";
-import type { Project, Summary } from "@shared/schema";
+import { pickLang, type Project, type Summary } from "@shared/schema";
 
 export default function ProjectDetail() {
   const [, params] = useRoute("/projects/:id");
   const projectId = Number(params?.id);
   const queryClient = useQueryClient();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [summaryOpen, setSummaryOpen] = useState(false);
 
   const { data: project, isLoading } = useQuery<Project>({
@@ -96,11 +96,11 @@ export default function ProjectDetail() {
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight" data-testid="text-project-title">
-              {project.title}
+              {pickLang(project.titleJson || project.title, locale) as string}
             </h1>
             <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
               {project.customerName && (
-                <span data-testid="text-customer">{project.customerName}</span>
+                <span data-testid="text-customer">{pickLang(project.customerNameJson || project.customerName, locale) as string}</span>
               )}
               {project.owner && (
                 <span data-testid="text-owner">{t("common.owner")}: {project.owner}</span>

@@ -23,6 +23,29 @@ export async function transcribeAudio(filePath: string, fileName: string): Promi
   return response.text;
 }
 
+export async function translateInputText(text: string): Promise<{ ja: string; en: string; vi: string }> {
+  const truncated = text.substring(0, 5000);
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "system",
+        content: "You are a professional translator. Translate the given text to Japanese, English, and Vietnamese. Return a JSON object with keys ja, en, vi. Keep the original text for the language it was written in. Translate naturally and preserve formatting.",
+      },
+      { role: "user", content: "Translate this text to all three languages (ja, en, vi) as JSON:\n\n" + truncated },
+    ],
+    response_format: { type: "json_object" },
+    max_tokens: 8192,
+  });
+  const content = response.choices[0]?.message?.content || "{}";
+  const result = JSON.parse(content);
+  return {
+    ja: result.ja || text,
+    en: result.en || text,
+    vi: result.vi || text,
+  };
+}
+
 const MULTILANG_INSTRUCTION = `
 IMPORTANT: All text output (titles, descriptions, summaries, etc.) MUST be provided in three languages simultaneously.
 Use this JSON structure for every text field:

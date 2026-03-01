@@ -5,7 +5,7 @@ import path from "path";
 import fs from "fs";
 import { z } from "zod";
 import { storage } from "./storage";
-import { extractStructuredData, generateSummary, generateDocument, transcribeAudio } from "./openai";
+import { extractStructuredData, generateSummary, generateDocument, transcribeAudio, translateInputText } from "./openai";
 
 const uploadDir = path.resolve("uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -117,6 +117,10 @@ export async function registerRoutes(
 
       const project = await storage.createProject(parsed.data);
 
+      translateProjectFields(project.id, parsed.data.title, parsed.data.customerName || null).catch((err) => {
+        console.error("Error translating project fields:", err);
+      });
+
       if (req.file) {
         const ext = path.extname(req.file.originalname).toLowerCase();
         let rawText = "";
@@ -175,6 +179,17 @@ export async function registerRoutes(
       }
 
       const project = await storage.updateProject(Number(req.params.id), parsed.data);
+
+      if (parsed.data.title || parsed.data.customerName) {
+        translateProjectFields(
+          project.id,
+          parsed.data.title || project.title,
+          parsed.data.customerName !== undefined ? parsed.data.customerName : project.customerName
+        ).catch((err) => {
+          console.error("Error translating project fields:", err);
+        });
+      }
+
       res.json(project);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
@@ -414,7 +429,12 @@ export async function registerRoutes(
 
 async function processInputText(projectId: number, inputId: number, text: string) {
   try {
-    const extracted = await extractStructuredData(text);
+    const [extracted, translated] = await Promise.all([
+      extractStructuredData(text),
+      translateInputText(text),
+    ]);
+
+    await storage.updateInputTranslation(inputId, translated);
 
     for (const item of extracted.items) {
       await storage.createStructuredItem({
@@ -446,5 +466,21 @@ async function processInputText(projectId: number, inputId: number, text: string
     });
   } catch (error) {
     console.error("Error processing input text:", error);
+  }
+}
+
+async function translateProjectFields(projectId: number, title: string, customerName: string | null) {
+  try {
+    const titleTranslated = await translateInputText(title);
+    let customerNameTranslated = null;
+    if (customerName) {
+      customerNameTranslated = await translateInputText(customerName);
+    }
+    await storage.updateProject(projectId, {
+      titleJson: titleTranslated,
+      customerNameJson: customerNameTranslated,
+    } as any);
+  } catch (error) {
+    console.error("Error translating project fields:", error);
   }
 }

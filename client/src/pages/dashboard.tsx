@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { FolderKanban, MessageSquare, Search, ArrowUpRight } from "lucide-react";
 import { useState } from "react";
-import type { Project } from "@shared/schema";
+import { pickLang, type Project } from "@shared/schema";
 
 const statusColors: Record<string, string> = {
   discovery: "secondary",
@@ -29,7 +29,7 @@ export default function Dashboard() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [, navigate] = useLocation();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   const { data: projects, isLoading } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
@@ -39,9 +39,11 @@ export default function Dashboard() {
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
     if (search) {
       const s = search.toLowerCase();
+      const displayTitle = pickLang(p.titleJson || p.title, locale) as string;
+      const displayCustomer = pickLang(p.customerNameJson || p.customerName || "", locale) as string;
       return (
-        p.title.toLowerCase().includes(s) ||
-        (p.customerName || "").toLowerCase().includes(s) ||
+        displayTitle.toLowerCase().includes(s) ||
+        displayCustomer.toLowerCase().includes(s) ||
         (p.owner || "").toLowerCase().includes(s)
       );
     }
@@ -126,13 +128,13 @@ export default function Dashboard() {
                   >
                     <TableCell>
                       <div className="flex items-center gap-2" data-testid={`link-project-${project.id}`}>
-                        <span className="font-medium text-sm">{project.title}</span>
+                        <span className="font-medium text-sm">{pickLang(project.titleJson || project.title, locale) as string}</span>
                         <ArrowUpRight className="w-3 h-3 text-muted-foreground" />
                       </div>
                     </TableCell>
                     <TableCell>
                       <span className="text-sm text-muted-foreground">
-                        {project.customerName || "-"}
+                        {project.customerName ? pickLang(project.customerNameJson || project.customerName, locale) as string : "-"}
                       </span>
                     </TableCell>
                     <TableCell>
