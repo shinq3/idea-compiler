@@ -89,6 +89,7 @@
     "textMemo": "テキスト / メモ",
     "meetingNotes": "会議メモ",
     "uploadFile": "ファイルアップロード",
+    "uploadAudio": "音声アップロード",
     "textPlaceholder": "プロジェクト情報、要件、メモを入力...",
     "meetingPlaceholder": "会議メモ、議論のポイント、決定事項を貼り付け...",
     "inputAdded": "入力を追加しました",

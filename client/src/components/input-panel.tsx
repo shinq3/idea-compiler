@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
-import { Send, Upload, FileText, X, Loader2, CheckCircle2, AlertCircle, Mic, Square } from "lucide-react";
+import { Send, Upload, FileText, X, Loader2, CheckCircle2, AlertCircle, Mic, Square, Music } from "lucide-react";
 
 interface InputPanelProps {
   projectId: number;
@@ -20,6 +20,7 @@ type VoiceState = "idle" | "recording" | "transcribing";
 export function InputPanel({ projectId }: InputPanelProps) {
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [audioFile, setAudioFile] = useState<File | null>(null);
   const [inputType, setInputType] = useState("text");
   const [processingState, setProcessingState] = useState<ProcessingState>("idle");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -29,6 +30,7 @@ export function InputPanel({ projectId }: InputPanelProps) {
   const taskKeyRef = useRef<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const audioFileRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
@@ -173,6 +175,36 @@ export function InputPanel({ projectId }: InputPanelProps) {
     }
   };
 
+  const handleAudioFileUpload = async (selectedFile: File) => {
+    setAudioFile(selectedFile);
+    setVoiceState("transcribing");
+    try {
+      const formData = new FormData();
+      formData.append("audio", selectedFile);
+
+      const res = await fetch("/api/transcribe", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Transcription failed");
+      }
+
+      const data = await res.json();
+      if (data.text) {
+        setText((prev) => prev ? prev + "\n" + data.text : data.text);
+      }
+    } catch (err: any) {
+      toast({ title: t("input.transcriptionFailed"), description: err.message, variant: "destructive" });
+    } finally {
+      setVoiceState("idle");
+      setAudioFile(null);
+      if (audioFileRef.current) audioFileRef.current.value = "";
+    }
+  };
+
   const formatDuration = (s: number) => {
     const m = Math.floor(s / 60);
     const sec = s % 60;
@@ -260,6 +292,16 @@ export function InputPanel({ projectId }: InputPanelProps) {
           <Upload className="w-3 h-3 mr-1" />
           {t("input.uploadFile")}
         </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => audioFileRef.current?.click()}
+          disabled={voiceState !== "idle"}
+          data-testid="button-upload-audio"
+        >
+          <Music className="w-3 h-3 mr-1" />
+          {t("input.uploadAudio")}
+        </Button>
         {voiceState === "idle" ? (
           <Button
             variant="outline"
@@ -303,6 +345,17 @@ export function InputPanel({ projectId }: InputPanelProps) {
           }}
           data-testid="input-file-upload"
         />
+        <input
+          ref={audioFileRef}
+          type="file"
+          accept=".mp3,.wav,.m4a,.webm,.mp4,.ogg"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) handleAudioFileUpload(f);
+          }}
+          data-testid="input-audio-upload"
+        />
       </div>
 
       {voiceState === "recording" && (
@@ -321,7 +374,12 @@ export function InputPanel({ projectId }: InputPanelProps) {
         <Card className="p-4">
           <div className="flex items-center gap-3">
             <Loader2 className="w-4 h-4 animate-spin text-primary" />
-            <span className="text-sm">{t("input.transcribing")}</span>
+            <div>
+              <span className="text-sm">{t("input.transcribing")}</span>
+              {audioFile && (
+                <p className="text-xs text-muted-foreground mt-0.5">{audioFile.name}</p>
+              )}
+            </div>
           </div>
         </Card>
       )}

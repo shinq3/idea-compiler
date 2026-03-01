@@ -89,6 +89,7 @@
     "textMemo": "Text / Memo",
     "meetingNotes": "Meeting Notes",
     "uploadFile": "Upload File",
+    "uploadAudio": "Upload Audio",
     "textPlaceholder": "Enter project information, requirements, notes...",
     "meetingPlaceholder": "Paste meeting notes, discussion points, decisions...",
     "inputAdded": "Input added",
