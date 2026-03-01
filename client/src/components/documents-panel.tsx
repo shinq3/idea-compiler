@@ -18,11 +18,19 @@ interface DocumentsPanelProps {
   hasSummary: boolean;
 }
 
+function getDocContent(doc: Document, locale: string): string {
+  const cj = doc.contentJson as any;
+  if (cj && typeof cj === "object") {
+    return cj[locale] || cj.en || cj.ja || cj.vi || doc.contentMd;
+  }
+  return doc.contentMd;
+}
+
 export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
   const [viewDoc, setViewDoc] = useState<Document | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   const { data: documents, isLoading } = useQuery<Document[]>({
     queryKey: [`/api/projects/${projectId}/documents`],
@@ -53,11 +61,12 @@ export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
   });
 
   const handleDownload = (doc: Document) => {
-    const blob = new Blob([doc.contentMd], { type: "text/markdown" });
+    const content = getDocContent(doc, locale);
+    const blob = new Blob([content], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${doc.type === "kickoff" ? "kickoff-document" : "feature-proposal"}.md`;
+    a.download = `${doc.type === "kickoff" ? "kickoff-document" : "feature-proposal"}-${locale}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -169,7 +178,9 @@ export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
           </DialogHeader>
           <ScrollArea className="max-h-[65vh]">
             <div className="prose prose-sm dark:prose-invert max-w-none pr-4" data-testid="text-document-content">
-              <pre className="whitespace-pre-wrap text-sm font-sans">{viewDoc?.contentMd}</pre>
+              <pre className="whitespace-pre-wrap text-sm font-sans">
+                {viewDoc ? getDocContent(viewDoc, locale) : ""}
+              </pre>
             </div>
           </ScrollArea>
           <div className="flex justify-end gap-2 pt-2">

@@ -20,9 +20,16 @@ A web application that helps nurture business projects from RFP to kickoff. Proj
 7. **Confidence Gauges** - Budget/timeline/requirement confidence tracking
 8. **PWA Support** - Installable as native app on mobile/desktop, offline caching
 9. **Voice Input** - Browser-based audio recording → OpenAI Whisper transcription → text area insertion
+10. **Multilingual AI Content** - All AI-generated content (structured items, summaries, documents) output in ja/en/vi simultaneously; frontend picks language based on current locale
 
 ## Data Flow
-Input (text/file) → PDF extraction (if PDF) → AI structured extraction → Summary update → DB save
+Input (text/file) → PDF extraction (if PDF) → AI structured extraction (multilingual) → Summary update (multilingual) → DB save
+
+## Multilingual Content Format
+- **Structured Items**: `valueJson.title` and `valueJson.description` are `{ ja, en, vi }` objects
+- **Summaries**: `summaryJson` is `{ ja: { overview, ... }, en: { ... }, vi: { ... } }`
+- **Documents**: `contentJson` is `{ ja: "markdown", en: "markdown", vi: "markdown" }` (fallback: `contentMd`)
+- **Backward Compatibility**: `pickLang()` helper handles both old (single string) and new (multilingual object) formats
 
 ## Data Models
 - `projects` - Core project entity with confidence scores

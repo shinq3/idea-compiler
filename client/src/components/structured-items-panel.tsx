@@ -3,6 +3,7 @@ import { useI18n } from "@/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { pickLang } from "@shared/schema";
 import type { StructuredItem } from "@shared/schema";
 
 const categoryColors: Record<string, string> = {
@@ -22,7 +23,7 @@ interface StructuredItemsPanelProps {
 }
 
 export function StructuredItemsPanel({ projectId }: StructuredItemsPanelProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { data: items, isLoading } = useQuery<StructuredItem[]>({
     queryKey: [`/api/projects/${projectId}/structured-items`],
   });
@@ -54,6 +55,12 @@ export function StructuredItemsPanel({ projectId }: StructuredItemsPanelProps) {
     return acc;
   }, {});
 
+  const pickStr = (val: any): string => {
+    if (!val) return "";
+    if (typeof val === "string") return val;
+    return pickLang(val, locale);
+  };
+
   return (
     <ScrollArea className="max-h-[600px]">
       <div className="space-y-6 pr-3">
@@ -75,15 +82,17 @@ export function StructuredItemsPanel({ projectId }: StructuredItemsPanelProps) {
                     data-testid={`card-structured-item-${item.id}`}
                   >
                     <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <span className="text-sm font-medium">{val?.title || val?.name || "Item"}</span>
+                      <span className="text-sm font-medium">
+                        {pickStr(val?.title) || pickStr(val?.name) || "Item"}
+                      </span>
                       {item.confidence !== null && (
                         <span className="text-xs text-muted-foreground tabular-nums">
                           {Math.round((item.confidence || 0) * 100)}% {t("common.confidence")}
                         </span>
                       )}
                     </div>
-                    {val?.description && (
-                      <p className="text-sm text-muted-foreground">{val.description}</p>
+                    {pickStr(val?.description) && (
+                      <p className="text-sm text-muted-foreground">{pickStr(val.description)}</p>
                     )}
                     {val?.priority && (
                       <Badge variant="outline" className="text-xs">

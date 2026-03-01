@@ -376,7 +376,7 @@ export async function registerRoutes(
       const allInputs = await storage.getInputsByProject(projectId);
       const allItems = await storage.getStructuredItemsByProject(projectId);
 
-      const content = await generateDocument(
+      const contentJson = await generateDocument(
         type as "kickoff" | "feature_proposal",
         summary.summaryJson,
         allInputs.map((i) => i.rawText),
@@ -390,7 +390,8 @@ export async function registerRoutes(
       const doc = await storage.createDocument({
         projectId,
         type,
-        contentMd: content,
+        contentMd: contentJson.ja || contentJson.en || "",
+        contentJson,
       });
 
       res.status(201).json(doc);

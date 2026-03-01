@@ -23,6 +23,15 @@ export async function transcribeAudio(filePath: string, fileName: string): Promi
   return response.text;
 }
 
+const MULTILANG_INSTRUCTION = `
+IMPORTANT: All text output (titles, descriptions, summaries, etc.) MUST be provided in three languages simultaneously.
+Use this JSON structure for every text field:
+{ "ja": "日本語テキスト", "en": "English text", "vi": "Tiếng Việt text" }
+
+For array fields, each element must also be trilingual:
+[{ "ja": "項目1", "en": "Item 1", "vi": "Mục 1" }]
+`;
+
 export async function extractStructuredData(text: string): Promise<{
   items: Array<{ category: string; value: any; confidence: number }>;
 }> {
@@ -34,8 +43,14 @@ export async function extractStructuredData(text: string): Promise<{
         content: `You are a business analyst. Extract structured information from the provided text.
 Return a JSON object with an "items" array. Each item has:
 - "category": one of "requirement", "issue", "decision", "constraint", "budget", "timeline", "risk", "term", "action"
-- "value": an object with "title" (short label) and "description" (detailed text)
+- "value": an object with:
+  - "title": { "ja": "...", "en": "...", "vi": "..." }
+  - "description": { "ja": "...", "en": "...", "vi": "..." }
+  - "priority" (optional, for requirements): "must" or "nice_to_have"
+  - "type" (optional, for actions): "question"
 - "confidence": number 0-1
+
+${MULTILANG_INSTRUCTION}
 
 For RFP/requirements documents, also extract:
 - must_requirements as category "requirement" with value.priority = "must"
@@ -50,7 +65,7 @@ Be thorough but precise. Only extract clearly stated information.`,
       { role: "user", content: text },
     ],
     response_format: { type: "json_object" },
-    max_completion_tokens: 4096,
+    max_completion_tokens: 8192,
   });
 
   const content = response.choices[0]?.message?.content || '{"items":[]}';
@@ -74,7 +89,14 @@ export async function generateSummary(
       {
         role: "system",
         content: `You are a business analyst creating a comprehensive project summary.
-Generate a JSON object with these fields:
+Generate a JSON object with this structure:
+{
+  "ja": { ... summary fields in Japanese ... },
+  "en": { ... summary fields in English ... },
+  "vi": { ... summary fields in Vietnamese ... }
+}
+
+Each language object must contain these fields:
 - "overview": string - project overview including customer challenges and objectives
 - "challenges": string - current challenges identified
 - "objectives": string - project goals
@@ -86,8 +108,9 @@ Generate a JSON object with these fields:
 - "uncertainItems": string[] - items needing confirmation (questions list)
 - "nextActions": string[] - recommended next actions
 
-Use all available information. If the previous summary exists, update it with new information rather than replacing it entirely. Be specific and actionable.
-Write in the same language as the input text. If the input is in Japanese, write in Japanese.`,
+The content should be the same information expressed naturally in each language.
+If the previous summary exists, update it with new information rather than replacing it entirely.
+Be specific and actionable.`,
       },
       {
         role: "user",
@@ -101,7 +124,7 @@ ${JSON.stringify(itemsByCategory, null, 2)}`,
       },
     ],
     response_format: { type: "json_object" },
-    max_completion_tokens: 4096,
+    max_completion_tokens: 8192,
   });
 
   const content = response.choices[0]?.message?.content || "{}";
@@ -113,11 +136,14 @@ export async function generateDocument(
   summaryJson: any,
   allInputTexts: string[],
   structuredItems: Array<{ category: string; valueJson: any; inputId: number | null }>
-): Promise<string> {
+): Promise<{ ja: string; en: string; vi: string }> {
   const systemPrompt =
     type === "kickoff"
-      ? `You are a senior consultant generating a kickoff document in Markdown.
-Structure:
+      ? `You are a senior consultant generating a kickoff document.
+Return a JSON object with three keys: "ja", "en", "vi".
+Each value is a full Markdown document in that language.
+
+Structure for each document:
 # Kickoff Document
 
 ## Background / Objectives
@@ -130,10 +156,12 @@ Structure:
 ## Unresolved Items (Questions List)
 ## Next Actions
 
-Always cite sources (input number, page reference if available). Be specific and professional.
-Write in the same language as the input data.`
-      : `You are a senior consultant generating a feature proposal document in Markdown.
-Structure:
+Always cite sources (input number, page reference if available). Be specific and professional.`
+      : `You are a senior consultant generating a feature proposal document.
+Return a JSON object with three keys: "ja", "en", "vi".
+Each value is a full Markdown document in that language.
+
+Structure for each document:
 # Feature Proposal
 
 ## Feature List (Must / Should / Could)
@@ -146,8 +174,7 @@ For each feature:
 ## Excluded Items
 ## Unresolved Items (Additional Investigation Needed)
 
-Always cite sources. Be specific and professional.
-Write in the same language as the input data.`;
+Always cite sources. Be specific and professional.`;
 
   const response = await openai.chat.completions.create({
     model: MODEL,
@@ -165,8 +192,10 @@ Structured Items:
 ${structuredItems.map((item) => `[${item.category}] (Input #${item.inputId}): ${JSON.stringify(item.valueJson)}`).join("\n")}`,
       },
     ],
-    max_completion_tokens: 8192,
+    response_format: { type: "json_object" },
+    max_completion_tokens: 16384,
   });
 
-  return response.choices[0]?.message?.content || "Document generation failed.";
+  const content = response.choices[0]?.message?.content || '{"ja":"","en":"","vi":""}';
+  return JSON.parse(content);
 }

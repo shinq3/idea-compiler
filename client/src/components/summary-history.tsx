@@ -4,14 +4,23 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Clock, History } from "lucide-react";
-import type { Summary, SummaryJson } from "@shared/schema";
+import { pickLang } from "@shared/schema";
+import type { Summary, SummaryContent } from "@shared/schema";
 
 interface SummaryHistoryProps {
   projectId: number;
 }
 
+function getSummaryContent(summaryJson: any, locale: string): SummaryContent | null {
+  if (!summaryJson) return null;
+  if (summaryJson.ja || summaryJson.en || summaryJson.vi) {
+    return (summaryJson[locale] || summaryJson.en || summaryJson.ja || summaryJson.vi) as SummaryContent;
+  }
+  return summaryJson as SummaryContent;
+}
+
 export function SummaryHistory({ projectId }: SummaryHistoryProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { data: summaries, isLoading } = useQuery<Summary[]>({
     queryKey: [`/api/projects/${projectId}/summaries`],
   });
@@ -36,7 +45,11 @@ export function SummaryHistory({ projectId }: SummaryHistoryProps) {
     <ScrollArea className="max-h-[400px]">
       <div className="space-y-3 pr-3">
         {summaries.map((summary) => {
-          const s = summary.summaryJson as SummaryJson;
+          const s = getSummaryContent(summary.summaryJson, locale);
+          const overview = s?.overview;
+          const displayText = overview
+            ? (typeof overview === "string" ? overview : pickLang(overview, locale))
+            : "Summary data";
           return (
             <div
               key={summary.id}
@@ -54,7 +67,7 @@ export function SummaryHistory({ projectId }: SummaryHistoryProps) {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground line-clamp-3">
-                {s?.overview || "Summary data"}
+                {displayText}
               </p>
             </div>
           );

@@ -54,6 +54,7 @@ export const documents = pgTable("documents", {
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
   type: text("type").notNull(),
   contentMd: text("content_md").notNull(),
+  contentJson: jsonb("content_json"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
@@ -112,7 +113,9 @@ export type InsertSummary = z.infer<typeof insertSummarySchema>;
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 
-export interface SummaryJson {
+export type Lang = "ja" | "en" | "vi";
+
+export interface SummaryContent {
   overview: string;
   challenges: string;
   objectives: string;
@@ -123,4 +126,24 @@ export interface SummaryJson {
   risks: string[];
   uncertainItems: string[];
   nextActions: string[];
+}
+
+export type MultiLangSummary = Record<Lang, SummaryContent>;
+
+export type SummaryJson = SummaryContent | MultiLangSummary;
+
+export interface MultiLangText {
+  ja: string;
+  en: string;
+  vi: string;
+}
+
+export function pickLang<T>(value: T | Record<Lang, T>, locale: string): T {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const obj = value as any;
+    if (obj.ja !== undefined || obj.en !== undefined || obj.vi !== undefined) {
+      return obj[locale] ?? obj.en ?? obj.ja ?? obj.vi ?? value as T;
+    }
+  }
+  return value as T;
 }
