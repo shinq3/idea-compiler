@@ -64,6 +64,9 @@ app.use((req, res, next) => {
   const { seedDatabase } = await import("./seed");
   await seedDatabase().catch((err) => console.error("Seed error:", err));
 
+  const { migrateTranslations } = await import("./migrate-translations");
+  migrateTranslations().catch((err) => console.error("Translation migration error:", err));
+
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
