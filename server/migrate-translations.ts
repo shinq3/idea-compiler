@@ -1,7 +1,8 @@
 import { db } from "./db";
 import { projects, inputs } from "@shared/schema";
-import { eq, isNull } from "drizzle-orm";
+import { eq, isNull, sql } from "drizzle-orm";
 import { translateInputText } from "./openai";
+import { storage } from "./storage";
 
 export async function migrateTranslations() {
   console.log("[migrate] Checking for untranslated data...");
@@ -57,4 +58,10 @@ export async function migrateTranslations() {
   } else {
     console.log("[migrate] Translation migration complete");
   }
+
+  const allProjects = await db.select().from(projects);
+  for (const p of allProjects) {
+    await storage.syncMeetingCount(p.id);
+  }
+  console.log("[migrate] Meeting counts synced");
 }

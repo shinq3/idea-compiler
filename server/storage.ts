@@ -35,6 +35,7 @@ export interface IStorage {
 
   updateProjectConfidence(projectId: number): Promise<void>;
   incrementMeetingCount(projectId: number): Promise<void>;
+  syncMeetingCount(projectId: number): Promise<void>;
 }
 
 class DatabaseStorage implements IStorage {
@@ -161,12 +162,18 @@ class DatabaseStorage implements IStorage {
   }
 
   async incrementMeetingCount(projectId: number): Promise<void> {
+    await this.syncMeetingCount(projectId);
+  }
+
+  async syncMeetingCount(projectId: number): Promise<void> {
+    const [result] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(inputs)
+      .where(sql`${inputs.projectId} = ${projectId} AND ${inputs.type} = 'meeting_note'`);
+    const count = result?.count || 0;
     await db
       .update(projects)
-      .set({
-        meetingCount: sql`${projects.meetingCount} + 1`,
-        updatedAt: new Date(),
-      })
+      .set({ meetingCount: count, updatedAt: new Date() })
       .where(eq(projects.id, projectId));
   }
 }
