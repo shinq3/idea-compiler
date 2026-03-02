@@ -67,7 +67,7 @@ class DatabaseStorage implements IStorage {
   }
 
   async getInputsByProject(projectId: number): Promise<Input[]> {
-    return db.select().from(inputs).where(eq(inputs.projectId, projectId)).orderBy(desc(inputs.createdAt));
+    return db.select().from(inputs).where(eq(inputs.projectId, projectId)).orderBy(inputs.createdAt);
   }
 
   async getInput(id: number): Promise<Input | undefined> {
