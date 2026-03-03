@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Download, X, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
+import { Download, Maximize2, Minimize2 } from "lucide-react";
 
 interface SlideViewerProps {
   open: boolean;
@@ -13,7 +13,90 @@ interface SlideViewerProps {
   title: string;
 }
 
-function buildFullHtml(slidesHtml: string, title: string): string {
+function buildPreviewHtml(slidesHtml: string, title: string): string {
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${title}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', 'Noto Sans', sans-serif; background: #f0f0f0; }
+  #deck { position: relative; width: 100%; height: 100%; }
+  section {
+    position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
+    flex-direction: column; padding: 40px 60px; background: #fff; text-align: center;
+    overflow-y: auto;
+  }
+  section.active { display: flex; }
+  section h1 { font-size: 2em; margin-bottom: 0.3em; }
+  section h2 { font-size: 1.5em; margin-bottom: 0.4em; color: #1a1a2e; }
+  section h3 { font-size: 1.1em; margin-bottom: 0.3em; color: #16213e; }
+  section h4 { font-size: 0.95em; }
+  section ul { text-align: left; width: 100%; max-width: 800px; padding-left: 0; list-style: none; }
+  section li { margin-bottom: 0.4em; font-size: 0.8em; line-height: 1.5; }
+  section p { font-size: 0.8em; line-height: 1.6; margin-bottom: 0.5em; }
+  .fragment { opacity: 1; }
+  #controls {
+    position: fixed; bottom: 12px; right: 16px; display: flex; gap: 8px; z-index: 100;
+  }
+  #controls button {
+    width: 36px; height: 36px; border-radius: 50%; border: none; background: rgba(0,0,0,0.15);
+    color: #333; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px); transition: background 0.2s;
+  }
+  #controls button:hover { background: rgba(0,0,0,0.3); color: #fff; }
+  #slide-number {
+    position: fixed; bottom: 16px; left: 16px; font-size: 13px; color: #999; z-index: 100;
+  }
+  #progress {
+    position: fixed; top: 0; left: 0; height: 3px; background: #667eea; z-index: 100; transition: width 0.3s;
+  }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="deck">${slidesHtml}</div>
+<div id="slide-number"></div>
+<div id="controls">
+  <button id="prev" aria-label="Previous">&#8592;</button>
+  <button id="next" aria-label="Next">&#8594;</button>
+</div>
+<script>
+  (function(){
+    var slides = document.querySelectorAll('#deck > section');
+    var current = 0;
+    function show(i) {
+      if (i < 0 || i >= slides.length) return;
+      slides[current].classList.remove('active');
+      current = i;
+      slides[current].classList.add('active');
+      document.getElementById('slide-number').textContent = (current+1) + ' / ' + slides.length;
+      document.getElementById('progress').style.width = ((current+1)/slides.length*100) + '%';
+      var bg = slides[current].getAttribute('data-background') || '';
+      if (bg) { slides[current].style.background = bg; }
+    }
+    if (slides.length > 0) show(0);
+    document.getElementById('prev').onclick = function(){ show(current - 1); };
+    document.getElementById('next').onclick = function(){ show(current + 1); };
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(current + 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); show(current - 1); }
+    });
+    var startX = 0;
+    document.addEventListener('touchstart', function(e){ startX = e.touches[0].clientX; });
+    document.addEventListener('touchend', function(e){
+      var diff = e.changedTouches[0].clientX - startX;
+      if (Math.abs(diff) > 50) { diff > 0 ? show(current - 1) : show(current + 1); }
+    });
+  })();
+<\/script>
+</body>
+</html>`;
+}
+
+function buildDownloadHtml(slidesHtml: string, title: string): string {
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -23,12 +106,10 @@ function buildFullHtml(slidesHtml: string, title: string): string {
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.min.css">
 <style>
-  .reveal h2 { font-size: 1.6em; color: #1a1a2e; margin-bottom: 0.5em; }
-  .reveal h3 { font-size: 1.2em; color: #16213e; }
-  .reveal ul { text-align: left; }
-  .reveal li { margin-bottom: 0.4em; font-size: 0.85em; }
-  .reveal section { padding: 20px; }
-  .reveal strong { color: #0f3460; }
+  body { margin: 0; }
+  .reveal { font-family: 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif; }
+  .reveal h1, .reveal h2, .reveal h3, .reveal h4 { font-family: inherit; }
+  .reveal section { padding: 20px 40px; }
 </style>
 </head>
 <body>
@@ -40,11 +121,8 @@ function buildFullHtml(slidesHtml: string, title: string): string {
 <script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.min.js"><\/script>
 <script>
   Reveal.initialize({
-    hash: true,
-    transition: 'slide',
-    width: 960,
-    height: 700,
-    margin: 0.1
+    hash: true, transition: 'slide', width: 960, height: 700, margin: 0.04,
+    slideNumber: true, controls: true, progress: true, center: true
   });
 <\/script>
 </body>
@@ -57,19 +135,11 @@ export function SlideViewer({ open, onClose, slidesHtml, title }: SlideViewerPro
   const [isFullscreen, setIsFullscreen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const fullHtml = buildFullHtml(slidesHtml, title);
-
-  useEffect(() => {
-    if (open && iframeRef.current) {
-      const blob = new Blob([fullHtml], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      iframeRef.current.src = url;
-      return () => URL.revokeObjectURL(url);
-    }
-  }, [open, fullHtml]);
+  const previewHtml = buildPreviewHtml(slidesHtml, title);
+  const downloadHtml = buildDownloadHtml(slidesHtml, title);
 
   const handleDownload = () => {
-    const blob = new Blob([fullHtml], { type: "text/html" });
+    const blob = new Blob([downloadHtml], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -123,11 +193,12 @@ export function SlideViewer({ open, onClose, slidesHtml, title }: SlideViewerPro
           </div>
         </DialogHeader>
         <div className="px-4 pb-4">
-          <div className="rounded-md border bg-white overflow-hidden" style={{ aspectRatio: "960/700" }}>
+          <div className="rounded-md border bg-white dark:bg-white overflow-hidden" style={{ aspectRatio: "960/700" }}>
             <iframe
               ref={iframeRef}
+              srcDoc={open ? previewHtml : ""}
               className="w-full h-full border-0"
-              sandbox="allow-scripts allow-same-origin"
+              sandbox="allow-scripts"
               data-testid="iframe-slides"
             />
           </div>

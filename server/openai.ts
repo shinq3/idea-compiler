@@ -229,33 +229,121 @@ export async function generateSlides(
   locale: string
 ): Promise<string> {
   const response = await openai.chat.completions.create({
-    model: MODEL,
+    model: "gpt-4o-mini",
     messages: [
       {
         role: "system",
-        content: `You are a presentation designer. Convert the given Markdown document into reveal.js HTML slides.
+        content: `You are a professional presentation designer. Convert the given document into rich, visually engaging reveal.js HTML slides.
 
-Rules:
-- Output ONLY the slide content as HTML sections (no full HTML page, no <html>/<head>/<body> tags).
+OUTPUT FORMAT:
+- Output ONLY <section> elements (no full HTML page, no <html>/<head>/<body>/<script> tags).
 - Each slide is a <section> element.
-- The first slide should be a title slide with the document title and subtitle.
-- Use <h2> for slide titles, <h3> for subtitles.
-- Use <ul>/<li> for bullet points. Keep bullets concise (max 6 per slide).
-- Split long content across multiple slides.
-- Use semantic HTML. Add class="fragment" to list items for step-by-step animation.
-- For emphasis, use <strong> or <em>.
-- Keep text concise and presentation-friendly (not walls of text).
-- Target 8-15 slides total.
-- Write in the language of the input document.
-- Do NOT include any markdown, only HTML.`,
+- Do NOT output markdown. Only valid HTML.
+- Do NOT wrap output in code fences.
+
+SLIDE DESIGN RULES:
+
+1. TITLE SLIDE (first slide):
+   <section data-background="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+     <h1 style="color:white;font-size:2.2em;text-shadow:2px 2px 4px rgba(0,0,0,0.3)">Title</h1>
+     <h3 style="color:rgba(255,255,255,0.85);font-weight:300">Subtitle / Date</h3>
+   </section>
+
+2. SECTION DIVIDER SLIDES (use between major sections):
+   <section data-background="linear-gradient(135deg, #2d3748 0%, #4a5568 100%)">
+     <h2 style="color:white;font-size:2em">Section Title</h2>
+     <p style="color:rgba(255,255,255,0.7)">Brief description</p>
+   </section>
+
+3. CONTENT SLIDES with icons (use emoji as visual icons):
+   <section>
+     <h2>📋 Slide Title</h2>
+     <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;text-align:left;margin-top:24px">
+       <div style="background:linear-gradient(135deg,#f5f7fa,#c3cfe2);padding:20px;border-radius:12px">
+         <h4 style="margin:0 0 8px 0">🎯 Point A</h4>
+         <p style="font-size:0.7em;margin:0">Details here</p>
+       </div>
+       <div style="background:linear-gradient(135deg,#ffecd2,#fcb69f);padding:20px;border-radius:12px">
+         <h4 style="margin:0 0 8px 0">💡 Point B</h4>
+         <p style="font-size:0.7em;margin:0">Details here</p>
+       </div>
+     </div>
+   </section>
+
+4. BULLET SLIDES (max 5 items, use fragment for animation):
+   <section>
+     <h2>🔍 Title</h2>
+     <ul style="list-style:none;padding:0;margin-top:20px">
+       <li class="fragment" style="background:#f0f4ff;margin:8px 0;padding:12px 20px;border-radius:8px;border-left:4px solid #667eea">
+         <strong>Key point</strong> — explanation
+       </li>
+     </ul>
+   </section>
+
+5. METRICS / KPI SLIDES (use large numbers):
+   <section>
+     <h2>📊 Key Metrics</h2>
+     <div style="display:flex;justify-content:center;gap:40px;margin-top:32px">
+       <div style="text-align:center">
+         <div style="font-size:2.5em;font-weight:700;color:#667eea">¥5M</div>
+         <div style="font-size:0.7em;color:#718096">Budget</div>
+       </div>
+       <div style="text-align:center">
+         <div style="font-size:2.5em;font-weight:700;color:#48bb78">6 mo</div>
+         <div style="font-size:0.7em;color:#718096">Timeline</div>
+       </div>
+     </div>
+   </section>
+
+6. TIMELINE / MILESTONE SLIDES:
+   <section>
+     <h2>📅 Milestones</h2>
+     <div style="display:flex;flex-direction:column;gap:12px;margin-top:20px">
+       <div class="fragment" style="display:flex;align-items:center;gap:16px">
+         <div style="width:48px;height:48px;border-radius:50%;background:#667eea;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">1</div>
+         <div style="text-align:left;background:#f7fafc;padding:12px 20px;border-radius:8px;flex:1">
+           <strong>Phase name</strong><br><span style="font-size:0.75em;color:#718096">Description and timeline</span>
+         </div>
+       </div>
+     </div>
+   </section>
+
+7. RISK / WARNING SLIDES:
+   <section>
+     <h2>⚠️ Risks</h2>
+     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px">
+       <div class="fragment" style="background:#fff5f5;padding:16px;border-radius:10px;border-left:4px solid #fc8181;text-align:left">
+         <strong style="color:#c53030">Risk</strong>
+         <p style="font-size:0.7em;margin:6px 0 0 0">Description and mitigation</p>
+       </div>
+     </div>
+   </section>
+
+8. CLOSING SLIDE (last slide):
+   <section data-background="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+     <h2 style="color:white">Next Steps</h2>
+     <div style="color:rgba(255,255,255,0.9);font-size:0.85em;margin-top:20px">
+       <p>Action items listed here</p>
+     </div>
+   </section>
+
+GENERAL RULES:
+- Target 10-16 slides total.
+- Mix different slide layouts for visual variety. Do NOT use the same layout for every slide.
+- Use appropriate emoji as visual icons for headings.
+- Keep text concise. No walls of text.
+- Use color palette: primary #667eea, success #48bb78, warning #ed8936, danger #fc8181, dark #2d3748.
+- Always use inline styles (no external CSS classes).
+- Write in the language of the input document.`,
       },
       {
         role: "user",
-        content: `Convert this ${documentType === "kickoff" ? "Kickoff Document" : "Feature Proposal"} to reveal.js slides:\n\n${documentMarkdown}`,
+        content: `Convert this ${documentType === "kickoff" ? "Kickoff Document" : "Feature Proposal"} to rich visual reveal.js slides:\n\n${documentMarkdown}`,
       },
     ],
-    max_completion_tokens: 8192,
+    max_tokens: 12000,
   });
 
-  return response.choices[0]?.message?.content || "";
+  const raw = response.choices[0]?.message?.content || "";
+  return raw.replace(/^```html?\n?/i, "").replace(/\n?```$/i, "").trim();
 }
