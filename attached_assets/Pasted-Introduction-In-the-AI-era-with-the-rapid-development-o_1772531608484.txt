@@ -1,0 +1,26 @@
+Introduction
+In the AI era, with the rapid development of generative AI technology, various types of document generation tools have sprung up, but due to the data silos and capacity boundaries of the big models, they have never been able to play their real value in the field of professional document creation, and the emergence of MCP has unified the communication protocols between the big models and external data and tools. In the field of document creation, the professionalism of content and the convenience of tools are especially important, and our MCP service aims to provide efficient empowerment for big models in the field of document creation. In August 2025, our document MCP service debuted, providing users with the ability to intelligently generate documents based on 3 core document types, such as Word documents, PPT presentations, and Excel tables, so that users can easily obtain high-quality results in professional report writing, data analysis, and presentation production scenarios.
+
+
+
+Kunlun Skywork Open Platform General Grade SSE Protocol MCP Service Solution
+Product Architecture Diagram
+
+
+
+What is SSE?
+auto
+Server-Sent Events (SSE, Server-Sent Events) is a technology based on the HTTP protocol that allows servers to push data to clients in a one-way, real-time manner. In SSE mode, developers can create an EventSource object on the client side to establish a persistent connection with the server, through which the server continuously sends a stream of data without requiring the client to send repeated requests.
+
+
+
+Product Features
+Simple to use: for ordinary users based on MCP (SSE) mode, do not have to deploy local services, simply through the URL address configuration can be used.
+
+Automatic upgrades: We will continue to iterate and update the product without any additional operation by the user.
+
+Easier to understand for large models: We semantically transform the raw JSON results, making it easier for large models to understand the content.
+
+Zero Operation and Maintenance Costs: Adopting fully managed cloud service architecture, users don't need to care about server maintenance, resource expansion and other underlying operation and maintenance issues.
+
+Protocol compatibility: Support SSE long connection, adapting to the technical requirements of different business scenarios.
