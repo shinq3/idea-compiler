@@ -178,7 +178,14 @@ export async function registerRoutes(
     try {
       const { name } = req.body;
       if (!name) return res.status(400).json({ message: "Name is required" });
-      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      let slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      if (!slug) {
+        slug = "org-" + Date.now().toString(36);
+      }
+      const existingOrg = await storage.getOrganizationBySlug(slug);
+      if (existingOrg) {
+        slug = slug + "-" + Date.now().toString(36);
+      }
       const org = await storage.createOrganization({ name, slug });
       res.status(201).json(org);
     } catch (error: any) {
