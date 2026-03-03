@@ -157,7 +157,9 @@
     "kickoffDocument": "Kickoff Document",
     "featureProposal": "Feature Proposal",
     "documentGenerated": "Document generated successfully",
-    "documentDeleted": "Document deleted"
+    "documentDeleted": "Document deleted",
+    "generateSlides": "Generate Slides",
+    "slidesNavHint": "Use arrow keys or swipe to navigate slides"
   },
   "confidence": {
     "title": "Information Confidence",

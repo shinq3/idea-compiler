@@ -30,6 +30,7 @@ export interface IStorage {
   createSummary(data: InsertSummary): Promise<Summary>;
 
   getDocumentsByProject(projectId: number): Promise<Document[]>;
+  getDocument(id: number): Promise<Document | undefined>;
   createDocument(data: InsertDocument): Promise<Document>;
   deleteDocument(id: number): Promise<void>;
 
@@ -119,6 +120,11 @@ class DatabaseStorage implements IStorage {
 
   async getDocumentsByProject(projectId: number): Promise<Document[]> {
     return db.select().from(documents).where(eq(documents.projectId, projectId)).orderBy(desc(documents.createdAt));
+  }
+
+  async getDocument(id: number): Promise<Document | undefined> {
+    const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+    return doc;
   }
 
   async createDocument(data: InsertDocument): Promise<Document> {

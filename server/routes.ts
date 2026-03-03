@@ -5,7 +5,7 @@ import path from "path";
 import fs from "fs";
 import { z } from "zod";
 import { storage } from "./storage";
-import { extractStructuredData, generateSummary, generateDocument, transcribeAudio, translateInputText } from "./openai";
+import { extractStructuredData, generateSummary, generateDocument, generateSlides, transcribeAudio, translateInputText } from "./openai";
 
 const uploadDir = path.resolve("uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -410,6 +410,35 @@ export async function registerRoutes(
       });
 
       res.status(201).json(doc);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/documents/:id/slides", async (req, res) => {
+    try {
+      const docId = Number(req.params.id);
+      const { locale } = req.body;
+      const lang = locale || "ja";
+
+      const doc = await storage.getDocument(docId);
+      if (!doc) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+
+      const cj = doc.contentJson as any;
+      let markdown = "";
+      if (cj && typeof cj === "object") {
+        markdown = cj[lang] || cj.en || cj.ja || cj.vi || doc.contentMd;
+      } else {
+        markdown = doc.contentMd;
+      }
+
+      const slidesHtml = await generateSlides(markdown, doc.type, lang);
+
+      const cleanHtml = slidesHtml.replace(/^```html?\s*/i, "").replace(/```\s*$/, "").trim();
+
+      res.json({ slidesHtml: cleanHtml });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

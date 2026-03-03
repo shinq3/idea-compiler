@@ -18,6 +18,7 @@ A web application that helps nurture business projects from RFP to kickoff. Proj
 5. **Auto-Summary** - AI generates and versions project summaries
 6. **Document Generation** - Kickoff documents and feature proposals
 7. **Confidence Gauges** - Budget/timeline/requirement confidence tracking
+11. **Slide Generation** - Convert kickoff docs / feature proposals to reveal.js HTML slides (OpenAI-powered), viewable in-app and downloadable as standalone HTML
 8. **PWA Support** - Installable as native app on mobile/desktop, offline caching
 9. **Voice Input** - Browser-based audio recording → OpenAI Whisper transcription → text area insertion
 10. **Multilingual AI Content** - All AI-generated content (structured items, summaries, documents) output in ja/en/vi simultaneously; frontend picks language based on current locale

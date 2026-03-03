@@ -157,7 +157,9 @@
     "kickoffDocument": "キックオフ資料",
     "featureProposal": "機能提案書",
     "documentGenerated": "ドキュメントを生成しました",
-    "documentDeleted": "ドキュメントを削除しました"
+    "documentDeleted": "ドキュメントを削除しました",
+    "generateSlides": "スライド生成",
+    "slidesNavHint": "矢印キーまたはスワイプでスライドを操作できます"
   },
   "confidence": {
     "title": "情報確度",

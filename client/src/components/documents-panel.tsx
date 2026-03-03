@@ -10,7 +10,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { FileText, Presentation, Loader2, Download, Trash2, Eye } from "lucide-react";
+import { FileText, Presentation, Loader2, Download, Trash2, Eye, MonitorPlay } from "lucide-react";
+import { SlideViewer } from "@/components/slide-viewer";
 import type { Document } from "@shared/schema";
 
 interface DocumentsPanelProps {
@@ -28,6 +29,7 @@ function getDocContent(doc: Document, locale: string): string {
 
 export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
   const [viewDoc, setViewDoc] = useState<Document | null>(null);
+  const [slidesData, setSlidesData] = useState<{ html: string; title: string } | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { t, locale } = useI18n();
@@ -57,6 +59,21 @@ export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/documents`] });
       toast({ title: t("documents.documentDeleted") });
+    },
+  });
+
+  const slidesMutation = useMutation({
+    mutationFn: async (doc: Document) => {
+      const res = await apiRequest("POST", `/api/documents/${doc.id}/slides`, { locale });
+      const data = await res.json();
+      const title = doc.type === "kickoff" ? t("documents.kickoffDocument") : t("documents.featureProposal");
+      return { html: data.slidesHtml, title };
+    },
+    onSuccess: (data) => {
+      setSlidesData(data);
+    },
+    onError: (err) => {
+      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
     },
   });
 
@@ -144,6 +161,20 @@ export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
                   <Button
                     variant="ghost"
                     size="sm"
+                    onClick={() => slidesMutation.mutate(doc)}
+                    disabled={slidesMutation.isPending}
+                    data-testid={`button-slides-doc-${doc.id}`}
+                  >
+                    {slidesMutation.isPending && slidesMutation.variables?.id === doc.id ? (
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <MonitorPlay className="w-3 h-3 mr-1" />
+                    )}
+                    {t("documents.generateSlides")}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleDownload(doc)}
                     data-testid={`button-download-doc-${doc.id}`}
                   >
@@ -197,6 +228,15 @@ export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {slidesData && (
+        <SlideViewer
+          open={!!slidesData}
+          onClose={() => setSlidesData(null)}
+          slidesHtml={slidesData.html}
+          title={slidesData.title}
+        />
+      )}
     </div>
   );
 }

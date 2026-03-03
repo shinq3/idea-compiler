@@ -222,3 +222,40 @@ ${structuredItems.map((item) => `[${item.category}] (Input #${item.inputId}): ${
   const content = response.choices[0]?.message?.content || '{"ja":"","en":"","vi":""}';
   return JSON.parse(content);
 }
+
+export async function generateSlides(
+  documentMarkdown: string,
+  documentType: string,
+  locale: string
+): Promise<string> {
+  const response = await openai.chat.completions.create({
+    model: MODEL,
+    messages: [
+      {
+        role: "system",
+        content: `You are a presentation designer. Convert the given Markdown document into reveal.js HTML slides.
+
+Rules:
+- Output ONLY the slide content as HTML sections (no full HTML page, no <html>/<head>/<body> tags).
+- Each slide is a <section> element.
+- The first slide should be a title slide with the document title and subtitle.
+- Use <h2> for slide titles, <h3> for subtitles.
+- Use <ul>/<li> for bullet points. Keep bullets concise (max 6 per slide).
+- Split long content across multiple slides.
+- Use semantic HTML. Add class="fragment" to list items for step-by-step animation.
+- For emphasis, use <strong> or <em>.
+- Keep text concise and presentation-friendly (not walls of text).
+- Target 8-15 slides total.
+- Write in the language of the input document.
+- Do NOT include any markdown, only HTML.`,
+      },
+      {
+        role: "user",
+        content: `Convert this ${documentType === "kickoff" ? "Kickoff Document" : "Feature Proposal"} to reveal.js slides:\n\n${documentMarkdown}`,
+      },
+    ],
+    max_completion_tokens: 8192,
+  });
+
+  return response.choices[0]?.message?.content || "";
+}

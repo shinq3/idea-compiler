@@ -157,7 +157,9 @@
     "kickoffDocument": "Tai lieu Kickoff",
     "featureProposal": "De xuat tinh nang",
     "documentGenerated": "Da tao tai lieu thanh cong",
-    "documentDeleted": "Da xoa tai lieu"
+    "documentDeleted": "Da xoa tai lieu",
+    "generateSlides": "Tao slide",
+    "slidesNavHint": "Su dung phim mui ten hoac vuot de dieu huong slide"
   },
   "confidence": {
     "title": "Do tin cay thong tin",
