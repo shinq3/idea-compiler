@@ -135,7 +135,8 @@
     "budgetRange": "予算レンジ",
     "targetRelease": "目標リリース",
     "created": "作成日",
-    "lastUpdated": "最終更新日"
+    "lastUpdated": "最終更新日",
+    "orgUpdated": "組織を変更しました"
   },
   "tabs": {
     "input": "入力",

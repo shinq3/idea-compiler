@@ -34,6 +34,7 @@ const updateProjectSchema = z.object({
   title: z.string().min(1).optional(),
   customerName: z.string().nullable().optional(),
   owner: z.string().nullable().optional(),
+  organizationId: z.coerce.number().int().nullable().optional(),
   budgetMin: z.coerce.number().int().nonnegative().nullable().optional(),
   budgetMax: z.coerce.number().int().nonnegative().nullable().optional(),
   releaseDateTarget: z.string().nullable().optional(),
@@ -446,6 +447,10 @@ export async function registerRoutes(
       const parsed = updateProjectSchema.safeParse(req.body);
       if (!parsed.success) {
         return res.status(400).json({ message: parsed.error.errors.map(e => e.message).join(", ") });
+      }
+
+      if (parsed.data.organizationId !== undefined && req.user!.role !== "system_admin") {
+        delete (parsed.data as any).organizationId;
       }
 
       const project = await storage.updateProject(Number(req.params.id), parsed.data);

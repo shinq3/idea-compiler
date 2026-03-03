@@ -135,7 +135,8 @@
     "budgetRange": "Pham vi ngan sach",
     "targetRelease": "Ngay phat hanh muc tieu",
     "created": "Ngay tao",
-    "lastUpdated": "Cap nhat lan cuoi"
+    "lastUpdated": "Cap nhat lan cuoi",
+    "orgUpdated": "Da cap nhat to chuc"
   },
   "tabs": {
     "input": "Nhap lieu",

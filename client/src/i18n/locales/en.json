@@ -135,7 +135,8 @@
     "budgetRange": "Budget Range",
     "targetRelease": "Target Release",
     "created": "Created",
-    "lastUpdated": "Last Updated"
+    "lastUpdated": "Last Updated",
+    "orgUpdated": "Organization updated"
   },
   "tabs": {
     "input": "Input",

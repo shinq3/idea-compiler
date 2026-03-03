@@ -13,6 +13,7 @@ import { InputsHistory } from "@/components/inputs-history";
 import { SummaryHistory } from "@/components/summary-history";
 import { ProjectMembersPanel } from "@/components/project-members-panel";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +42,8 @@ export default function ProjectDetail() {
   const projectId = Number(params?.id);
   const queryClient = useQueryClient();
   const { t, locale } = useI18n();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, isAdmin } = useAuth();
+  const { toast } = useToast();
   const [summaryOpen, setSummaryOpen] = useState(false);
 
   const canManageProject = currentUser && ["system_admin", "org_admin", "pm"].includes(currentUser.role);
@@ -72,6 +74,21 @@ export default function ProjectDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    },
+  });
+
+  const updateOrgMutation = useMutation({
+    mutationFn: async (organizationId: number) => {
+      const res = await apiRequest("PATCH", `/api/projects/${projectId}`, { organizationId });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      toast({ title: t("projectDetail.orgUpdated") });
+    },
+    onError: (err: any) => {
+      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
     },
   });
 
@@ -177,14 +194,28 @@ export default function ProjectDetail() {
 
           <Card className="p-5 space-y-3">
             <h3 className="font-semibold text-sm">{t("projectDetail.projectDetails")}</h3>
-            {orgName && (
-              <DetailRow label={t("projectDetail.organization")}>
+            <DetailRow label={t("projectDetail.organization")}>
+              {isAdmin && orgs && orgs.length > 0 ? (
+                <Select
+                  value={project.organizationId?.toString() || ""}
+                  onValueChange={(val) => updateOrgMutation.mutate(Number(val))}
+                >
+                  <SelectTrigger className="w-[180px] h-8 text-sm" data-testid="select-project-org">
+                    <SelectValue placeholder={t("createProject.selectOrg")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {orgs.map((o) => (
+                      <SelectItem key={o.id} value={o.id.toString()}>{o.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
                 <div className="flex items-center gap-1">
                   <Building2 className="w-3 h-3 text-muted-foreground" />
-                  {orgName}
+                  {orgName || t("common.notSet")}
                 </div>
-              </DetailRow>
-            )}
+              )}
+            </DetailRow>
             <DetailRow label={t("projectDetail.budgetRange")}>
               {project.budgetMin || project.budgetMax
                 ? `${project.budgetMin?.toLocaleString() || "?"} - ${project.budgetMax?.toLocaleString() || "?"}`
