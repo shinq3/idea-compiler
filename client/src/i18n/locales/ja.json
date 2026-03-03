@@ -121,6 +121,8 @@
     "targetReleaseDate": "目標リリース日",
     "rfpDocument": "RFP資料 (PDF)",
     "uploadRfp": "RFPをアップロード (PDF/TXT/MD)",
+    "organization": "組織",
+    "selectOrg": "組織を選択",
     "createProject": "案件を作成",
     "projectCreated": "案件を作成しました",
     "pdfAnalyzing": "PDFを解析中..."
@@ -129,6 +131,7 @@
     "projectNotFound": "案件が見つかりません",
     "meetingsCount": "{count} 回の会議",
     "projectDetails": "案件詳細",
+    "organization": "組織",
     "budgetRange": "予算レンジ",
     "targetRelease": "目標リリース",
     "created": "作成日",
@@ -139,7 +142,21 @@
     "inputs": "入力履歴",
     "extracted": "抽出データ",
     "documents": "ドキュメント",
-    "versions": "バージョン"
+    "versions": "バージョン",
+    "members": "メンバー"
+  },
+  "members": {
+    "title": "プロジェクトメンバー",
+    "addMember": "メンバー追加",
+    "selectUser": "ユーザーを選択",
+    "role": "権限",
+    "viewer": "閲覧者",
+    "editor": "編集者",
+    "added": "メンバーを追加しました",
+    "removed": "メンバーを削除しました",
+    "confirmRemove": "このメンバーを削除しますか？",
+    "noMembers": "メンバーがまだ追加されていません",
+    "addDescription": "組織内のユーザーをプロジェクトに追加できます。"
   },
   "input": {
     "textMemo": "テキスト / メモ",

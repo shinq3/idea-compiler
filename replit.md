@@ -94,6 +94,7 @@ client/src/
     inputs-history.tsx
     summary-history.tsx
     confidence-gauge.tsx
+    project-members-panel.tsx  - Member management in project detail
     slide-viewer.tsx
 
 server/

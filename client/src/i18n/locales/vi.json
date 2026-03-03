@@ -121,6 +121,8 @@
     "targetReleaseDate": "Ngay phat hanh muc tieu",
     "rfpDocument": "Tai lieu RFP (PDF)",
     "uploadRfp": "Tai len RFP (PDF/TXT/MD)",
+    "organization": "To chuc",
+    "selectOrg": "Chon to chuc",
     "createProject": "Tao du an",
     "projectCreated": "Da tao du an",
     "pdfAnalyzing": "Dang phan tich PDF..."
@@ -129,6 +131,7 @@
     "projectNotFound": "Khong tim thay du an",
     "meetingsCount": "{count} cuoc hop",
     "projectDetails": "Chi tiet du an",
+    "organization": "To chuc",
     "budgetRange": "Pham vi ngan sach",
     "targetRelease": "Ngay phat hanh muc tieu",
     "created": "Ngay tao",
@@ -139,7 +142,21 @@
     "inputs": "Lich su nhap",
     "extracted": "Du lieu trich xuat",
     "documents": "Tai lieu",
-    "versions": "Phien ban"
+    "versions": "Phien ban",
+    "members": "Thanh vien"
+  },
+  "members": {
+    "title": "Thanh vien du an",
+    "addMember": "Them thanh vien",
+    "selectUser": "Chon nguoi dung",
+    "role": "Vai tro",
+    "viewer": "Nguoi xem",
+    "editor": "Nguoi chinh sua",
+    "added": "Da them thanh vien",
+    "removed": "Da xoa thanh vien",
+    "confirmRemove": "Xoa thanh vien nay?",
+    "noMembers": "Chua co thanh vien nao",
+    "addDescription": "Them nguoi dung tu to chuc cua ban vao du an nay."
   },
   "input": {
     "textMemo": "Van ban / Ghi chu",

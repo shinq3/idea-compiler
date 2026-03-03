@@ -2,19 +2,22 @@ import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { useI18n } from "@/i18n";
+import { useAuth, getToken } from "@/lib/auth";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Upload, FileText, X } from "lucide-react";
-import { getToken } from "@/lib/auth";
 
 const createProjectSchema = z.object({
   title: z.string().min(1, "Project title is required"),
@@ -27,13 +30,26 @@ const createProjectSchema = z.object({
 
 type FormData = z.infer<typeof createProjectSchema>;
 
+interface OrgData {
+  id: number;
+  name: string;
+  slug: string;
+}
+
 export function CreateProjectDialog() {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [organizationId, setOrganizationId] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const { t } = useI18n();
+  const { user, isAdmin } = useAuth();
+
+  const { data: orgs } = useQuery<OrgData[]>({
+    queryKey: ["/api/organizations"],
+    enabled: isAdmin,
+  });
 
   const form = useForm<FormData>({
     resolver: zodResolver(createProjectSchema),
@@ -56,6 +72,7 @@ export function CreateProjectDialog() {
       if (data.budgetMin) formData.append("budgetMin", data.budgetMin);
       if (data.budgetMax) formData.append("budgetMax", data.budgetMax);
       if (data.releaseDateTarget) formData.append("releaseDateTarget", data.releaseDateTarget);
+      if (isAdmin && organizationId) formData.append("organizationId", organizationId);
       if (file) formData.append("rfpFile", file);
 
       const headers: Record<string, string> = {};
@@ -71,6 +88,7 @@ export function CreateProjectDialog() {
       setOpen(false);
       form.reset();
       setFile(null);
+      setOrganizationId("");
       navigate(`/projects/${project.id}`);
     },
     onError: (err) => {
@@ -130,6 +148,22 @@ export function CreateProjectDialog() {
               />
             </div>
           </div>
+
+          {isAdmin && orgs && orgs.length > 0 && (
+            <div className="space-y-2">
+              <Label>{t("createProject.organization")}</Label>
+              <Select value={organizationId} onValueChange={setOrganizationId}>
+                <SelectTrigger data-testid="select-project-org">
+                  <SelectValue placeholder={t("createProject.selectOrg")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {orgs.map((o) => (
+                    <SelectItem key={o.id} value={o.id.toString()}>{o.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">

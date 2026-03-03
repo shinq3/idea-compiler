@@ -121,6 +121,8 @@
     "targetReleaseDate": "Target Release Date",
     "rfpDocument": "RFP Document (PDF)",
     "uploadRfp": "Upload RFP (PDF/TXT/MD)",
+    "organization": "Organization",
+    "selectOrg": "Select organization",
     "createProject": "Create Project",
     "projectCreated": "Project created",
     "pdfAnalyzing": "PDF is being analyzed..."
@@ -129,6 +131,7 @@
     "projectNotFound": "Project not found",
     "meetingsCount": "{count} meetings",
     "projectDetails": "Project Details",
+    "organization": "Organization",
     "budgetRange": "Budget Range",
     "targetRelease": "Target Release",
     "created": "Created",
@@ -139,7 +142,21 @@
     "inputs": "Inputs",
     "extracted": "Extracted",
     "documents": "Documents",
-    "versions": "Versions"
+    "versions": "Versions",
+    "members": "Members"
+  },
+  "members": {
+    "title": "Project Members",
+    "addMember": "Add Member",
+    "selectUser": "Select user",
+    "role": "Role",
+    "viewer": "Viewer",
+    "editor": "Editor",
+    "added": "Member added",
+    "removed": "Member removed",
+    "confirmRemove": "Remove this member?",
+    "noMembers": "No members added yet",
+    "addDescription": "Add users from your organization to this project."
   },
   "input": {
     "textMemo": "Text / Memo",

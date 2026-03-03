@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import { useI18n } from "@/i18n";
+import { useAuth } from "@/lib/auth";
 import { Layout } from "@/components/layout";
 import { ConfidenceGauge } from "@/components/confidence-gauge";
 import { SummaryDisplay } from "@/components/summary-display";
@@ -10,9 +11,11 @@ import { StructuredItemsPanel } from "@/components/structured-items-panel";
 import { DocumentsPanel } from "@/components/documents-panel";
 import { InputsHistory } from "@/components/inputs-history";
 import { SummaryHistory } from "@/components/summary-history";
+import { ProjectMembersPanel } from "@/components/project-members-panel";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -23,16 +26,25 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, MessageSquare, FileText, Database, FolderOpen,
-  History, Pencil, ChevronDown, ChevronRight,
+  History, Pencil, ChevronDown, ChevronRight, Building2, Users,
 } from "lucide-react";
 import { pickLang, type Project, type Summary } from "@shared/schema";
+
+interface OrgData {
+  id: number;
+  name: string;
+  slug: string;
+}
 
 export default function ProjectDetail() {
   const [, params] = useRoute("/projects/:id");
   const projectId = Number(params?.id);
   const queryClient = useQueryClient();
   const { t, locale } = useI18n();
+  const { user: currentUser } = useAuth();
   const [summaryOpen, setSummaryOpen] = useState(false);
+
+  const canManageProject = currentUser && ["system_admin", "org_admin", "pm"].includes(currentUser.role);
 
   const { data: project, isLoading } = useQuery<Project>({
     queryKey: ["/api/projects", projectId],
@@ -41,6 +53,16 @@ export default function ProjectDetail() {
   const { data: latestSummary } = useQuery<Summary | null>({
     queryKey: [`/api/projects/${projectId}/summary/latest`],
   });
+
+  const { data: orgs } = useQuery<OrgData[]>({
+    queryKey: ["/api/organizations"],
+  });
+
+  const getOrgName = (orgId: number | null | undefined) => {
+    if (!orgId || !orgs) return null;
+    const org = orgs.find((o) => o.id === orgId);
+    return org?.name || null;
+  };
 
   const updateStatusMutation = useMutation({
     mutationFn: async (status: string) => {
@@ -81,6 +103,8 @@ export default function ProjectDetail() {
     );
   }
 
+  const orgName = getOrgName(project.organizationId);
+
   return (
     <Layout
       actions={
@@ -99,6 +123,12 @@ export default function ProjectDetail() {
               {pickLang(project.titleJson || project.title, locale) as string}
             </h1>
             <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
+              {orgName && (
+                <div className="flex items-center gap-1" data-testid="text-project-org">
+                  <Building2 className="w-3 h-3" />
+                  <span>{orgName}</span>
+                </div>
+              )}
               {project.customerName && (
                 <span data-testid="text-customer">{pickLang(project.customerNameJson || project.customerName, locale) as string}</span>
               )}
@@ -112,21 +142,27 @@ export default function ProjectDetail() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <Select
-              value={project.status}
-              onValueChange={(val) => updateStatusMutation.mutate(val)}
-            >
-              <SelectTrigger className="w-[140px]" data-testid="select-status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="discovery">{t("status.discovery")}</SelectItem>
-                <SelectItem value="proposal">{t("status.proposal")}</SelectItem>
-                <SelectItem value="negotiation">{t("status.negotiation")}</SelectItem>
-                <SelectItem value="won">{t("status.won")}</SelectItem>
-                <SelectItem value="lost">{t("status.lost")}</SelectItem>
-              </SelectContent>
-            </Select>
+            {canManageProject ? (
+              <Select
+                value={project.status}
+                onValueChange={(val) => updateStatusMutation.mutate(val)}
+              >
+                <SelectTrigger className="w-[140px]" data-testid="select-status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="discovery">{t("status.discovery")}</SelectItem>
+                  <SelectItem value="proposal">{t("status.proposal")}</SelectItem>
+                  <SelectItem value="negotiation">{t("status.negotiation")}</SelectItem>
+                  <SelectItem value="won">{t("status.won")}</SelectItem>
+                  <SelectItem value="lost">{t("status.lost")}</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <Badge variant="secondary" data-testid="badge-status">
+                {t(`status.${project.status}`)}
+              </Badge>
+            )}
           </div>
         </div>
 
@@ -141,6 +177,14 @@ export default function ProjectDetail() {
 
           <Card className="p-5 space-y-3">
             <h3 className="font-semibold text-sm">{t("projectDetail.projectDetails")}</h3>
+            {orgName && (
+              <DetailRow label={t("projectDetail.organization")}>
+                <div className="flex items-center gap-1">
+                  <Building2 className="w-3 h-3 text-muted-foreground" />
+                  {orgName}
+                </div>
+              </DetailRow>
+            )}
             <DetailRow label={t("projectDetail.budgetRange")}>
               {project.budgetMin || project.budgetMax
                 ? `${project.budgetMin?.toLocaleString() || "?"} - ${project.budgetMax?.toLocaleString() || "?"}`
@@ -182,7 +226,7 @@ export default function ProjectDetail() {
         </Collapsible>
 
         <Tabs defaultValue="input" className="w-full">
-          <TabsList className="w-full grid grid-cols-5">
+          <TabsList className="w-full grid grid-cols-6">
             <TabsTrigger value="input" data-testid="tab-input">
               <Pencil className="w-3 h-3 mr-1" />
               {t("tabs.input")}
@@ -202,6 +246,10 @@ export default function ProjectDetail() {
             <TabsTrigger value="summaries" data-testid="tab-summaries">
               <FolderOpen className="w-3 h-3 mr-1" />
               {t("tabs.versions")}
+            </TabsTrigger>
+            <TabsTrigger value="members" data-testid="tab-members">
+              <Users className="w-3 h-3 mr-1" />
+              {t("tabs.members")}
             </TabsTrigger>
           </TabsList>
 
@@ -232,6 +280,12 @@ export default function ProjectDetail() {
           <TabsContent value="summaries" className="mt-4">
             <Card className="p-5">
               <SummaryHistory projectId={projectId} />
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="members" className="mt-4">
+            <Card className="p-5">
+              <ProjectMembersPanel projectId={projectId} />
             </Card>
           </TabsContent>
         </Tabs>

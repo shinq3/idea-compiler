@@ -501,6 +501,9 @@ export async function registerRoutes(
       const { userId, role } = req.body;
       if (!userId) return res.status(400).json({ message: "userId is required" });
 
+      const validMemberRoles = ["viewer", "editor"];
+      const memberRole = validMemberRoles.includes(role) ? role : "viewer";
+
       const targetUser = await storage.getUserById(Number(userId));
       if (!targetUser) return res.status(404).json({ message: "User not found" });
 
@@ -513,7 +516,7 @@ export async function registerRoutes(
       const member = await storage.addProjectMember({
         projectId: Number(req.params.id),
         userId: Number(userId),
-        role: role || "viewer",
+        role: memberRole,
       });
       res.status(201).json(member);
     } catch (error: any) {
