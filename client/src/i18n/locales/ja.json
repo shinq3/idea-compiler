@@ -18,10 +18,66 @@
     "confidence": "確信度",
     "version": "バージョン",
     "meetings": "会議",
-    "owner": "担当者"
+    "owner": "担当者",
+    "save": "保存"
   },
   "nav": {
-    "backToDashboard": "ダッシュボードに戻る"
+    "backToDashboard": "ダッシュボードに戻る",
+    "dashboard": "ダッシュボード",
+    "users": "ユーザー管理",
+    "organizations": "組織管理"
+  },
+  "auth": {
+    "loginTitle": "ログイン",
+    "loginId": "ユーザーID / メール",
+    "loginIdPlaceholder": "ユーザーIDまたはメールアドレス",
+    "password": "パスワード",
+    "passwordPlaceholder": "パスワードを入力",
+    "login": "ログイン",
+    "loginFailed": "ログインに失敗しました",
+    "logout": "ログアウト"
+  },
+  "roles": {
+    "system_admin": "システム管理者",
+    "org_admin": "組織管理者",
+    "pm": "PM",
+    "member": "メンバー"
+  },
+  "users": {
+    "title": "ユーザー管理",
+    "description": "ユーザーの登録・編集・削除ができます。",
+    "create": "ユーザー追加",
+    "createUser": "ユーザーを作成",
+    "editUser": "ユーザーを編集",
+    "username": "ユーザーID",
+    "displayName": "表示名",
+    "email": "メール",
+    "role": "権限",
+    "organization": "組織",
+    "password": "パスワード",
+    "newPassword": "新しいパスワード",
+    "leaveEmpty": "変更しない場合は空欄",
+    "selectOrg": "組織を選択",
+    "created": "作成しました",
+    "updated": "更新しました",
+    "deleted": "削除しました",
+    "confirmDelete": "このユーザーを削除しますか？",
+    "noUsers": "ユーザーがいません"
+  },
+  "orgs": {
+    "title": "組織管理",
+    "description": "組織の作成・編集・削除ができます。",
+    "create": "組織追加",
+    "createOrg": "組織を作成",
+    "editOrg": "組織を編集",
+    "name": "組織名",
+    "slug": "スラッグ",
+    "createdAt": "作成日",
+    "created": "作成しました",
+    "updated": "更新しました",
+    "deleted": "削除しました",
+    "confirmDelete": "この組織を削除しますか？",
+    "noOrgs": "組織がありません"
   },
   "dashboard": {
     "title": "案件一覧",

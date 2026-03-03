@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Upload, FileText, X } from "lucide-react";
+import { getToken } from "@/lib/auth";
 
 const createProjectSchema = z.object({
   title: z.string().min(1, "Project title is required"),
@@ -57,7 +58,10 @@ export function CreateProjectDialog() {
       if (data.releaseDateTarget) formData.append("releaseDateTarget", data.releaseDateTarget);
       if (file) formData.append("rfpFile", file);
 
-      const res = await fetch("/api/projects", { method: "POST", body: formData });
+      const headers: Record<string, string> = {};
+      const token = getToken();
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const res = await fetch("/api/projects", { method: "POST", body: formData, headers });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
     },

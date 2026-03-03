@@ -6,6 +6,7 @@ import fs from "fs";
 import { z } from "zod";
 import { storage } from "./storage";
 import { extractStructuredData, generateSummary, generateDocument, generateSlides, transcribeAudio, translateInputText } from "./openai";
+import { requireAuth, requireRole, requireProjectAccess, hashPassword, verifyPassword, generateToken } from "./auth";
 
 const uploadDir = path.resolve("uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -16,11 +17,13 @@ const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".md"];
 const ALLOWED_AUDIO_EXTENSIONS = [".webm", ".mp4", ".m4a", ".wav", ".mp3", ".ogg"];
 const VALID_STATUSES = ["discovery", "proposal", "negotiation", "won", "lost"];
 const VALID_INPUT_TYPES = ["text", "meeting_note", "rfp_pdf", "file"];
+const VALID_ROLES = ["system_admin", "org_admin", "pm", "member"];
 
 const createProjectSchema = z.object({
   title: z.string().min(1, "Title is required"),
   customerName: z.string().nullable().optional(),
   owner: z.string().nullable().optional(),
+  organizationId: z.coerce.number().int().nullable().optional(),
   budgetMin: z.coerce.number().int().nonnegative().nullable().optional(),
   budgetMax: z.coerce.number().int().nonnegative().nullable().optional(),
   releaseDateTarget: z.string().nullable().optional(),
@@ -35,6 +38,28 @@ const updateProjectSchema = z.object({
   budgetMax: z.coerce.number().int().nonnegative().nullable().optional(),
   releaseDateTarget: z.string().nullable().optional(),
   status: z.enum(["discovery", "proposal", "negotiation", "won", "lost"]).optional(),
+});
+
+const loginSchema = z.object({
+  login: z.string().min(1),
+  password: z.string().min(1),
+});
+
+const registerUserSchema = z.object({
+  username: z.string().min(2).max(50),
+  email: z.string().email(),
+  password: z.string().min(4),
+  displayName: z.string().min(1),
+  role: z.enum(["system_admin", "org_admin", "pm", "member"]).default("member"),
+  organizationId: z.coerce.number().int().nullable().optional(),
+});
+
+const updateUserSchema = z.object({
+  displayName: z.string().min(1).optional(),
+  email: z.string().email().optional(),
+  password: z.string().min(4).optional(),
+  role: z.enum(["system_admin", "org_admin", "pm", "member"]).optional(),
+  organizationId: z.coerce.number().int().nullable().optional(),
 });
 
 const upload = multer({
@@ -75,21 +100,257 @@ const audioUpload = multer({
   },
 });
 
+function stripPassword(user: any) {
+  const { passwordHash, ...rest } = user;
+  return rest;
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
 
-  app.get("/api/projects", async (_req, res) => {
+  // ===== AUTH ROUTES (public) =====
+
+  app.post("/api/auth/login", async (req, res) => {
     try {
-      const projects = await storage.getProjects();
+      const parsed = loginSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Login and password are required" });
+      }
+
+      const { login, password } = parsed.data;
+      let user = await storage.getUserByUsername(login);
+      if (!user) {
+        user = await storage.getUserByEmail(login);
+      }
+      if (!user) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const valid = await verifyPassword(password, user.passwordHash);
+      if (!valid) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const token = generateToken(user);
+      res.json({ token, user: stripPassword(user) });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/auth/me", requireAuth, async (req, res) => {
+    try {
+      const user = await storage.getUserById(req.user!.id);
+      if (!user) return res.status(404).json({ message: "User not found" });
+      res.json(stripPassword(user));
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/auth/me", requireAuth, async (req, res) => {
+    try {
+      const data: any = {};
+      if (req.body.displayName) data.displayName = req.body.displayName;
+      if (req.body.password) data.passwordHash = await hashPassword(req.body.password);
+      const user = await storage.updateUser(req.user!.id, data);
+      res.json(stripPassword(user));
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ===== ORGANIZATION ROUTES =====
+
+  app.get("/api/organizations", requireAuth, async (_req, res) => {
+    try {
+      const orgs = await storage.getOrganizations();
+      res.json(orgs);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/organizations", requireAuth, requireRole("system_admin"), async (req, res) => {
+    try {
+      const { name } = req.body;
+      if (!name) return res.status(400).json({ message: "Name is required" });
+      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const org = await storage.createOrganization({ name, slug });
+      res.status(201).json(org);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/organizations/:id", requireAuth, async (req, res) => {
+    try {
+      const orgId = Number(req.params.id);
+      if (req.user!.role !== "system_admin" && !(req.user!.role === "org_admin" && req.user!.organizationId === orgId)) {
+        return res.status(403).json({ message: "Insufficient permissions" });
+      }
+      const { name } = req.body;
+      if (!name) return res.status(400).json({ message: "Name is required" });
+      const org = await storage.updateOrganization(orgId, { name });
+      res.json(org);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/organizations/:id", requireAuth, requireRole("system_admin"), async (req, res) => {
+    try {
+      await storage.deleteOrganization(Number(req.params.id));
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ===== USER MANAGEMENT ROUTES =====
+
+  app.get("/api/users", requireAuth, requireRole("system_admin", "org_admin", "pm"), async (req, res) => {
+    try {
+      let userList;
+      if (req.user!.role === "system_admin") {
+        userList = await storage.getUsers();
+      } else {
+        if (!req.user!.organizationId) return res.json([]);
+        userList = await storage.getUsersByOrg(req.user!.organizationId);
+      }
+      res.json(userList.map(stripPassword));
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/users", requireAuth, requireRole("system_admin", "org_admin", "pm"), async (req, res) => {
+    try {
+      const parsed = registerUserSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors.map(e => e.message).join(", ") });
+      }
+
+      const { username, email, password, displayName, role, organizationId } = parsed.data;
+
+      if (req.user!.role === "org_admin") {
+        if (role === "system_admin" || role === "org_admin") {
+          return res.status(403).json({ message: "Cannot create users with this role" });
+        }
+      }
+      if (req.user!.role === "pm") {
+        if (role !== "member") {
+          return res.status(403).json({ message: "PM can only create member users" });
+        }
+      }
+
+      const existingUsername = await storage.getUserByUsername(username);
+      if (existingUsername) {
+        return res.status(409).json({ message: "Username already exists" });
+      }
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(409).json({ message: "Email already exists" });
+      }
+
+      const passwordHash = await hashPassword(password);
+      const resolvedOrgId = req.user!.role === "system_admin"
+        ? (organizationId ?? null)
+        : req.user!.organizationId;
+
+      const user = await storage.createUser({
+        username,
+        email,
+        passwordHash,
+        displayName,
+        role,
+        organizationId: resolvedOrgId,
+      });
+
+      res.status(201).json(stripPassword(user));
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.patch("/api/users/:id", requireAuth, requireRole("system_admin", "org_admin"), async (req, res) => {
+    try {
+      const targetId = Number(req.params.id);
+      const targetUser = await storage.getUserById(targetId);
+      if (!targetUser) return res.status(404).json({ message: "User not found" });
+
+      if (req.user!.role === "org_admin") {
+        if (targetUser.organizationId !== req.user!.organizationId) {
+          return res.status(403).json({ message: "Cannot edit users outside your organization" });
+        }
+        if (req.body.role === "system_admin" || req.body.role === "org_admin") {
+          return res.status(403).json({ message: "Cannot assign this role" });
+        }
+      }
+
+      const parsed = updateUserSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: parsed.error.errors.map(e => e.message).join(", ") });
+      }
+
+      const data: any = {};
+      if (parsed.data.displayName) data.displayName = parsed.data.displayName;
+      if (parsed.data.email) data.email = parsed.data.email;
+      if (parsed.data.role) data.role = parsed.data.role;
+      if (parsed.data.organizationId !== undefined) data.organizationId = parsed.data.organizationId;
+      if (parsed.data.password) data.passwordHash = await hashPassword(parsed.data.password);
+
+      const user = await storage.updateUser(targetId, data);
+      res.json(stripPassword(user));
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/users/:id", requireAuth, requireRole("system_admin", "org_admin"), async (req, res) => {
+    try {
+      const targetId = Number(req.params.id);
+      if (targetId === req.user!.id) {
+        return res.status(400).json({ message: "Cannot delete yourself" });
+      }
+
+      const targetUser = await storage.getUserById(targetId);
+      if (!targetUser) return res.status(404).json({ message: "User not found" });
+
+      if (req.user!.role === "org_admin") {
+        if (targetUser.organizationId !== req.user!.organizationId) {
+          return res.status(403).json({ message: "Cannot delete users outside your organization" });
+        }
+        if (targetUser.role === "system_admin" || targetUser.role === "org_admin") {
+          return res.status(403).json({ message: "Cannot delete users with this role" });
+        }
+      }
+
+      await storage.deleteUser(targetId);
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ===== PROJECT ROUTES (protected) =====
+
+  app.get("/api/projects", requireAuth, async (req, res) => {
+    try {
+      const projects = await storage.getProjectsForUser(
+        req.user!.id,
+        req.user!.role,
+        req.user!.organizationId
+      );
       res.json(projects);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
   });
 
-  app.get("/api/projects/:id", async (req, res) => {
+  app.get("/api/projects/:id", requireAuth, requireProjectAccess, async (req, res) => {
     try {
       const project = await storage.getProject(Number(req.params.id));
       if (!project) return res.status(404).json({ message: "Not found" });
@@ -99,12 +360,13 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/projects", upload.single("rfpFile"), async (req, res) => {
+  app.post("/api/projects", requireAuth, requireRole("system_admin", "org_admin", "pm"), upload.single("rfpFile"), async (req, res) => {
     try {
       const parsed = createProjectSchema.safeParse({
         title: req.body.title,
         customerName: req.body.customerName || null,
         owner: req.body.owner || null,
+        organizationId: req.body.organizationId || null,
         budgetMin: req.body.budgetMin || null,
         budgetMax: req.body.budgetMax || null,
         releaseDateTarget: req.body.releaseDateTarget || null,
@@ -115,7 +377,11 @@ export async function registerRoutes(
         return res.status(400).json({ message: parsed.error.errors.map(e => e.message).join(", ") });
       }
 
-      const project = await storage.createProject(parsed.data);
+      const orgId = req.user!.role === "system_admin"
+        ? (parsed.data.organizationId ?? req.user!.organizationId)
+        : req.user!.organizationId;
+
+      const project = await storage.createProject({ ...parsed.data, organizationId: orgId });
 
       translateProjectFields(project.id, parsed.data.title, parsed.data.customerName || null).catch((err) => {
         console.error("Error translating project fields:", err);
@@ -171,8 +437,12 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/projects/:id", async (req, res) => {
+  app.patch("/api/projects/:id", requireAuth, requireProjectAccess, async (req, res) => {
     try {
+      if (req.user!.role === "member") {
+        return res.status(403).json({ message: "Members cannot edit project settings" });
+      }
+
       const parsed = updateProjectSchema.safeParse(req.body);
       if (!parsed.success) {
         return res.status(400).json({ message: parsed.error.errors.map(e => e.message).join(", ") });
@@ -196,7 +466,7 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/projects/:id", async (req, res) => {
+  app.delete("/api/projects/:id", requireAuth, requireProjectAccess, requireRole("system_admin", "org_admin", "pm"), async (req, res) => {
     try {
       const projectId = Number(req.params.id);
       const projectInputs = await storage.getInputsByProject(projectId);
@@ -212,7 +482,57 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/projects/:id/inputs", async (req, res) => {
+  // ===== PROJECT MEMBER ROUTES =====
+
+  app.get("/api/projects/:id/members", requireAuth, requireProjectAccess, async (req, res) => {
+    try {
+      const members = await storage.getProjectMembers(Number(req.params.id));
+      res.json(members.map((m) => ({
+        ...m,
+        user: m.user ? stripPassword(m.user) : undefined,
+      })));
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/projects/:id/members", requireAuth, requireProjectAccess, requireRole("system_admin", "org_admin", "pm"), async (req, res) => {
+    try {
+      const { userId, role } = req.body;
+      if (!userId) return res.status(400).json({ message: "userId is required" });
+
+      const targetUser = await storage.getUserById(Number(userId));
+      if (!targetUser) return res.status(404).json({ message: "User not found" });
+
+      if (req.user!.role !== "system_admin") {
+        if (targetUser.organizationId !== req.user!.organizationId) {
+          return res.status(403).json({ message: "Cannot add users from a different organization" });
+        }
+      }
+
+      const member = await storage.addProjectMember({
+        projectId: Number(req.params.id),
+        userId: Number(userId),
+        role: role || "viewer",
+      });
+      res.status(201).json(member);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/projects/:id/members/:userId", requireAuth, requireProjectAccess, requireRole("system_admin", "org_admin", "pm"), async (req, res) => {
+    try {
+      await storage.removeProjectMember(Number(req.params.id), Number(req.params.userId));
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ===== INPUT ROUTES (protected) =====
+
+  app.get("/api/projects/:id/inputs", requireAuth, requireProjectAccess, async (req, res) => {
     try {
       const inputs = await storage.getInputsByProject(Number(req.params.id));
       res.json(inputs);
@@ -223,7 +543,7 @@ export async function registerRoutes(
 
   const processingStatus = new Map<string, { status: "processing" | "done" | "error"; message?: string }>();
 
-  app.post("/api/projects/:id/inputs", upload.single("file"), async (req, res) => {
+  app.post("/api/projects/:id/inputs", requireAuth, requireProjectAccess, upload.single("file"), async (req, res) => {
     try {
       const projectId = Number(req.params.id);
 
@@ -308,7 +628,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/transcribe", audioUpload.single("audio"), async (req, res) => {
+  app.post("/api/transcribe", requireAuth, audioUpload.single("audio"), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: "No audio file provided" });
@@ -324,7 +644,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/processing-status/:taskKey", (req, res) => {
+  app.get("/api/processing-status/:taskKey", requireAuth, (req, res) => {
     const status = processingStatus.get(req.params.taskKey);
     if (!status) return res.json({ status: "unknown" });
     res.json(status);
@@ -333,7 +653,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/projects/:id/structured-items", async (req, res) => {
+  app.get("/api/projects/:id/structured-items", requireAuth, requireProjectAccess, async (req, res) => {
     try {
       const items = await storage.getStructuredItemsByProject(Number(req.params.id));
       res.json(items);
@@ -342,7 +662,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/projects/:id/summaries", async (req, res) => {
+  app.get("/api/projects/:id/summaries", requireAuth, requireProjectAccess, async (req, res) => {
     try {
       const sums = await storage.getSummariesByProject(Number(req.params.id));
       res.json(sums);
@@ -351,7 +671,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/projects/:id/summary/latest", async (req, res) => {
+  app.get("/api/projects/:id/summary/latest", requireAuth, requireProjectAccess, async (req, res) => {
     try {
       const summary = await storage.getLatestSummary(Number(req.params.id));
       res.json(summary || null);
@@ -360,7 +680,7 @@ export async function registerRoutes(
     }
   });
 
-  app.get("/api/projects/:id/documents", async (req, res) => {
+  app.get("/api/projects/:id/documents", requireAuth, requireProjectAccess, async (req, res) => {
     try {
       const docs = await storage.getDocumentsByProject(Number(req.params.id));
       res.json(docs);
@@ -369,8 +689,12 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/projects/:id/documents/generate", async (req, res) => {
+  app.post("/api/projects/:id/documents/generate", requireAuth, requireProjectAccess, async (req, res) => {
     try {
+      if (req.user!.role === "member") {
+        return res.status(403).json({ message: "Members cannot generate documents" });
+      }
+
       const projectId = Number(req.params.id);
       const { type } = req.body;
 
@@ -415,7 +739,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/documents/:id/slides", async (req, res) => {
+  app.post("/api/documents/:id/slides", requireAuth, async (req, res) => {
     try {
       const docId = Number(req.params.id);
       const { locale } = req.body;
@@ -424,6 +748,21 @@ export async function registerRoutes(
       const doc = await storage.getDocument(docId);
       if (!doc) {
         return res.status(404).json({ message: "Document not found" });
+      }
+
+      const project = await storage.getProject(doc.projectId);
+      if (!project) return res.status(404).json({ message: "Project not found" });
+      if (req.user!.role !== "system_admin") {
+        if (req.user!.role === "org_admin" || req.user!.role === "pm") {
+          if (project.organizationId !== req.user!.organizationId) {
+            return res.status(403).json({ message: "Access denied" });
+          }
+        } else if (req.user!.role === "member") {
+          const members = await storage.getProjectMembers(doc.projectId);
+          if (!members.some((m) => m.userId === req.user!.id)) {
+            return res.status(403).json({ message: "Access denied" });
+          }
+        }
       }
 
       const cj = doc.contentJson as any;
@@ -444,8 +783,24 @@ export async function registerRoutes(
     }
   });
 
-  app.delete("/api/documents/:id", async (req, res) => {
+  app.delete("/api/documents/:id", requireAuth, async (req, res) => {
     try {
+      const doc = await storage.getDocument(Number(req.params.id));
+      if (!doc) return res.status(404).json({ message: "Document not found" });
+
+      if (req.user!.role === "member") {
+        return res.status(403).json({ message: "Members cannot delete documents" });
+      }
+
+      const project = await storage.getProject(doc.projectId);
+      if (project && req.user!.role !== "system_admin") {
+        if (req.user!.role === "org_admin" || req.user!.role === "pm") {
+          if (project.organizationId !== req.user!.organizationId) {
+            return res.status(403).json({ message: "Access denied" });
+          }
+        }
+      }
+
       await storage.deleteDocument(Number(req.params.id));
       res.status(204).send();
     } catch (error: any) {

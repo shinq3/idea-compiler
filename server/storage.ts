@@ -1,16 +1,22 @@
 import { db } from "./db";
 import {
   projects, inputs, structuredItems, summaries, documents,
+  organizations, users, projectMembers,
   type Project, type InsertProject,
   type Input, type InsertInput,
   type StructuredItem, type InsertStructuredItem,
   type Summary, type InsertSummary,
   type Document, type InsertDocument,
+  type Organization, type InsertOrganization,
+  type User, type InsertUser,
+  type ProjectMember, type InsertProjectMember,
 } from "@shared/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, or, inArray } from "drizzle-orm";
 
 export interface IStorage {
   getProjects(): Promise<Project[]>;
+  getProjectsByOrg(orgId: number): Promise<Project[]>;
+  getProjectsForUser(userId: number, role: string, orgId: number | null): Promise<Project[]>;
   getProject(id: number): Promise<Project | undefined>;
   createProject(data: InsertProject): Promise<Project>;
   updateProject(id: number, data: Partial<InsertProject>): Promise<Project>;
@@ -37,11 +43,50 @@ export interface IStorage {
   updateProjectConfidence(projectId: number): Promise<void>;
   incrementMeetingCount(projectId: number): Promise<void>;
   syncMeetingCount(projectId: number): Promise<void>;
+
+  getOrganizations(): Promise<Organization[]>;
+  getOrganization(id: number): Promise<Organization | undefined>;
+  createOrganization(data: InsertOrganization): Promise<Organization>;
+  updateOrganization(id: number, data: Partial<InsertOrganization>): Promise<Organization>;
+  deleteOrganization(id: number): Promise<void>;
+
+  getUsers(): Promise<User[]>;
+  getUsersByOrg(orgId: number): Promise<User[]>;
+  getUserById(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(data: InsertUser): Promise<User>;
+  updateUser(id: number, data: Partial<InsertUser>): Promise<User>;
+  deleteUser(id: number): Promise<void>;
+
+  getProjectMembers(projectId: number): Promise<(ProjectMember & { user?: User })[]>;
+  addProjectMember(data: InsertProjectMember): Promise<ProjectMember>;
+  removeProjectMember(projectId: number, userId: number): Promise<void>;
 }
 
 class DatabaseStorage implements IStorage {
   async getProjects(): Promise<Project[]> {
     return db.select().from(projects).orderBy(desc(projects.updatedAt));
+  }
+
+  async getProjectsByOrg(orgId: number): Promise<Project[]> {
+    return db.select().from(projects).where(eq(projects.organizationId, orgId)).orderBy(desc(projects.updatedAt));
+  }
+
+  async getProjectsForUser(userId: number, role: string, orgId: number | null): Promise<Project[]> {
+    if (role === "system_admin") {
+      return this.getProjects();
+    }
+    if ((role === "org_admin" || role === "pm") && orgId) {
+      return this.getProjectsByOrg(orgId);
+    }
+    if (role === "member") {
+      const memberships = await db.select().from(projectMembers).where(eq(projectMembers.userId, userId));
+      if (memberships.length === 0) return [];
+      const projectIds = memberships.map((m) => m.projectId);
+      return db.select().from(projects).where(inArray(projects.id, projectIds)).orderBy(desc(projects.updatedAt));
+    }
+    return [];
   }
 
   async getProject(id: number): Promise<Project | undefined> {
@@ -181,6 +226,95 @@ class DatabaseStorage implements IStorage {
       .update(projects)
       .set({ meetingCount: count, updatedAt: new Date() })
       .where(eq(projects.id, projectId));
+  }
+
+  async getOrganizations(): Promise<Organization[]> {
+    return db.select().from(organizations).orderBy(organizations.name);
+  }
+
+  async getOrganization(id: number): Promise<Organization | undefined> {
+    const [org] = await db.select().from(organizations).where(eq(organizations.id, id));
+    return org;
+  }
+
+  async createOrganization(data: InsertOrganization): Promise<Organization> {
+    const [org] = await db.insert(organizations).values(data).returning();
+    return org;
+  }
+
+  async updateOrganization(id: number, data: Partial<InsertOrganization>): Promise<Organization> {
+    const [org] = await db.update(organizations).set(data).where(eq(organizations.id, id)).returning();
+    return org;
+  }
+
+  async deleteOrganization(id: number): Promise<void> {
+    await db.delete(organizations).where(eq(organizations.id, id));
+  }
+
+  async getUsers(): Promise<User[]> {
+    return db.select().from(users).orderBy(users.displayName);
+  }
+
+  async getUsersByOrg(orgId: number): Promise<User[]> {
+    return db.select().from(users).where(eq(users.organizationId, orgId)).orderBy(users.displayName);
+  }
+
+  async getUserById(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUser(data: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(data).returning();
+    return user;
+  }
+
+  async updateUser(id: number, data: Partial<InsertUser>): Promise<User> {
+    const [user] = await db.update(users).set(data).where(eq(users.id, id)).returning();
+    return user;
+  }
+
+  async deleteUser(id: number): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
+  }
+
+  async getProjectMembers(projectId: number): Promise<(ProjectMember & { user?: User })[]> {
+    const members = await db.select().from(projectMembers).where(eq(projectMembers.projectId, projectId));
+    const enriched = await Promise.all(
+      members.map(async (m) => {
+        const user = await this.getUserById(m.userId);
+        return { ...m, user };
+      })
+    );
+    return enriched;
+  }
+
+  async addProjectMember(data: InsertProjectMember): Promise<ProjectMember> {
+    const existing = await db
+      .select()
+      .from(projectMembers)
+      .where(and(eq(projectMembers.projectId, data.projectId), eq(projectMembers.userId, data.userId)));
+    if (existing.length > 0) {
+      return existing[0];
+    }
+    const [member] = await db.insert(projectMembers).values(data).returning();
+    return member;
+  }
+
+  async removeProjectMember(projectId: number, userId: number): Promise<void> {
+    await db
+      .delete(projectMembers)
+      .where(and(eq(projectMembers.projectId, projectId), eq(projectMembers.userId, userId)));
   }
 }
 

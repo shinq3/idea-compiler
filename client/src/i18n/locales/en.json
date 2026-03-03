@@ -18,10 +18,66 @@
     "confidence": "confidence",
     "version": "Version",
     "meetings": "meetings",
-    "owner": "Owner"
+    "owner": "Owner",
+    "save": "Save"
   },
   "nav": {
-    "backToDashboard": "Back to Dashboard"
+    "backToDashboard": "Back to Dashboard",
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "organizations": "Organizations"
+  },
+  "auth": {
+    "loginTitle": "Sign In",
+    "loginId": "Username / Email",
+    "loginIdPlaceholder": "Username or email address",
+    "password": "Password",
+    "passwordPlaceholder": "Enter password",
+    "login": "Sign In",
+    "loginFailed": "Login failed",
+    "logout": "Sign Out"
+  },
+  "roles": {
+    "system_admin": "System Admin",
+    "org_admin": "Org Admin",
+    "pm": "PM",
+    "member": "Member"
+  },
+  "users": {
+    "title": "User Management",
+    "description": "Create, edit, and delete users.",
+    "create": "Add User",
+    "createUser": "Create User",
+    "editUser": "Edit User",
+    "username": "Username",
+    "displayName": "Display Name",
+    "email": "Email",
+    "role": "Role",
+    "organization": "Organization",
+    "password": "Password",
+    "newPassword": "New Password",
+    "leaveEmpty": "Leave empty to keep current",
+    "selectOrg": "Select organization",
+    "created": "User created",
+    "updated": "User updated",
+    "deleted": "User deleted",
+    "confirmDelete": "Delete this user?",
+    "noUsers": "No users found"
+  },
+  "orgs": {
+    "title": "Organization Management",
+    "description": "Create, edit, and delete organizations.",
+    "create": "Add Organization",
+    "createOrg": "Create Organization",
+    "editOrg": "Edit Organization",
+    "name": "Name",
+    "slug": "Slug",
+    "createdAt": "Created",
+    "created": "Organization created",
+    "updated": "Organization updated",
+    "deleted": "Organization deleted",
+    "confirmDelete": "Delete this organization?",
+    "noOrgs": "No organizations found"
   },
   "dashboard": {
     "title": "Projects",

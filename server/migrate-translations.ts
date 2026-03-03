@@ -1,8 +1,9 @@
 import { db } from "./db";
-import { projects, inputs } from "@shared/schema";
+import { projects, inputs, users, organizations } from "@shared/schema";
 import { eq, isNull, sql } from "drizzle-orm";
 import { translateInputText } from "./openai";
 import { storage } from "./storage";
+import { hashPassword } from "./auth";
 
 export async function migrateTranslations() {
   console.log("[migrate] Checking for untranslated data...");
@@ -64,4 +65,35 @@ export async function migrateTranslations() {
     await storage.syncMeetingCount(p.id);
   }
   console.log("[migrate] Meeting counts synced");
+
+  await seedDefaultAdmin();
+}
+
+async function seedDefaultAdmin() {
+  const existingUsers = await db.select().from(users);
+  if (existingUsers.length > 0) return;
+
+  console.log("[migrate] Creating default organization and admin user...");
+
+  let [defaultOrg] = await db.select().from(organizations).limit(1);
+  if (!defaultOrg) {
+    [defaultOrg] = await db.insert(organizations).values({
+      name: "Default Organization",
+      slug: "default",
+    }).returning();
+  }
+
+  const passwordHash = await hashPassword("admin123");
+  await db.insert(users).values({
+    username: "admin",
+    email: "admin@casenurture.local",
+    passwordHash,
+    displayName: "System Admin",
+    role: "system_admin",
+    organizationId: defaultOrg.id,
+  });
+
+  await db.update(projects).set({ organizationId: defaultOrg.id });
+
+  console.log("[migrate] Default admin created (admin / admin123)");
 }

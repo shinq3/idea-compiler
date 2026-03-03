@@ -18,10 +18,66 @@
     "confidence": "do tin cay",
     "version": "Phien ban",
     "meetings": "cuoc hop",
-    "owner": "Nguoi phu trach"
+    "owner": "Nguoi phu trach",
+    "save": "Luu"
   },
   "nav": {
-    "backToDashboard": "Quay lai Bang dieu khien"
+    "backToDashboard": "Quay lai Bang dieu khien",
+    "dashboard": "Bang dieu khien",
+    "users": "Quan ly nguoi dung",
+    "organizations": "Quan ly to chuc"
+  },
+  "auth": {
+    "loginTitle": "Dang nhap",
+    "loginId": "Ten dang nhap / Email",
+    "loginIdPlaceholder": "Ten dang nhap hoac dia chi email",
+    "password": "Mat khau",
+    "passwordPlaceholder": "Nhap mat khau",
+    "login": "Dang nhap",
+    "loginFailed": "Dang nhap that bai",
+    "logout": "Dang xuat"
+  },
+  "roles": {
+    "system_admin": "Quan tri he thong",
+    "org_admin": "Quan tri to chuc",
+    "pm": "PM",
+    "member": "Thanh vien"
+  },
+  "users": {
+    "title": "Quan ly nguoi dung",
+    "description": "Tao, chinh sua va xoa nguoi dung.",
+    "create": "Them nguoi dung",
+    "createUser": "Tao nguoi dung",
+    "editUser": "Chinh sua nguoi dung",
+    "username": "Ten dang nhap",
+    "displayName": "Ten hien thi",
+    "email": "Email",
+    "role": "Vai tro",
+    "organization": "To chuc",
+    "password": "Mat khau",
+    "newPassword": "Mat khau moi",
+    "leaveEmpty": "De trong de giu nguyen",
+    "selectOrg": "Chon to chuc",
+    "created": "Da tao nguoi dung",
+    "updated": "Da cap nhat nguoi dung",
+    "deleted": "Da xoa nguoi dung",
+    "confirmDelete": "Xoa nguoi dung nay?",
+    "noUsers": "Khong tim thay nguoi dung"
+  },
+  "orgs": {
+    "title": "Quan ly to chuc",
+    "description": "Tao, chinh sua va xoa to chuc.",
+    "create": "Them to chuc",
+    "createOrg": "Tao to chuc",
+    "editOrg": "Chinh sua to chuc",
+    "name": "Ten",
+    "slug": "Slug",
+    "createdAt": "Ngay tao",
+    "created": "Da tao to chuc",
+    "updated": "Da cap nhat to chuc",
+    "deleted": "Da xoa to chuc",
+    "confirmDelete": "Xoa to chuc nay?",
+    "noOrgs": "Khong tim thay to chuc"
   },
   "dashboard": {
     "title": "Du an",

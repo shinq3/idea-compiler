@@ -1,14 +1,26 @@
 # CaseNurture - Project Nurturing OS
 
 ## Overview
-A web application that helps nurture business projects from RFP to kickoff. Projects grow through meetings and inputs, with AI-powered analysis, structured data extraction, and automatic document generation.
+A web application that helps nurture business projects from RFP to kickoff. Projects grow through meetings and inputs, with AI-powered analysis, structured data extraction, and automatic document generation. Features JWT-based authentication, organization management, and role-based access control (RBAC).
 
 ## Architecture
 - **Frontend**: React + TypeScript + Vite + TailwindCSS + shadcn/ui
 - **Backend**: Express.js (Node/TypeScript)
 - **Database**: PostgreSQL (via Drizzle ORM)
-- **AI**: OpenAI API (o4-mini model, requires OPENAI_API_KEY env var)
+- **AI**: OpenAI API (o4-mini for extraction/summaries, gpt-4o-mini for slides/translations)
+- **Auth**: JWT (jsonwebtoken + bcrypt), stored in localStorage
 - **File Processing**: pdf-parse for PDF text extraction, multer for file uploads
+
+## Authentication & RBAC
+- **JWT Auth**: Token stored in localStorage as `casenurture_token`
+- **Default credentials**: username=`admin`, password=`admin123`, role=`system_admin`
+- **Roles**:
+  - `system_admin`: All projects, all users, all orgs
+  - `org_admin`: Org projects, manage org users (pm/member)
+  - `pm`: Org projects, create/manage projects, manage members
+  - `member`: Invited projects only (read + input)
+- **Login**: Accepts username OR email
+- **Middleware**: `requireAuth`, `requireRole(...roles)`, `requireProjectAccess`
 
 ## Key Features
 1. **Project Dashboard** - Overview of all projects with filtering/search
@@ -18,10 +30,13 @@ A web application that helps nurture business projects from RFP to kickoff. Proj
 5. **Auto-Summary** - AI generates and versions project summaries
 6. **Document Generation** - Kickoff documents and feature proposals
 7. **Confidence Gauges** - Budget/timeline/requirement confidence tracking
-11. **Slide Generation** - Convert kickoff docs / feature proposals to reveal.js HTML slides (OpenAI-powered), viewable in-app and downloadable as standalone HTML
-8. **PWA Support** - Installable as native app on mobile/desktop, offline caching
-9. **Voice Input** - Browser-based audio recording → OpenAI Whisper transcription → text area insertion
-10. **Multilingual AI Content** - All AI-generated content (structured items, summaries, documents) output in ja/en/vi simultaneously; frontend picks language based on current locale
+8. **Slide Generation** - Convert docs to HTML slides, viewable in-app and downloadable
+9. **PWA Support** - Installable as native app on mobile/desktop
+10. **Voice Input** - Browser recording → Whisper transcription → text insertion
+11. **Multilingual AI Content** - ja/en/vi simultaneous output
+12. **User Management** - CRUD users with role-based visibility
+13. **Organization Management** - CRUD organizations (system_admin creates/deletes)
+14. **Project Member Management** - Add/remove members to projects
 
 ## Data Flow
 Input (text/file) → PDF extraction (if PDF) → AI structured extraction (multilingual) → Summary update (multilingual) → DB save
@@ -35,7 +50,10 @@ Input (text/file) → PDF extraction (if PDF) → AI structured extraction (mult
 - **Backward Compatibility**: `pickLang()` helper handles both old (single string) and new (multilingual object) formats
 
 ## Data Models
-- `projects` - Core project entity with confidence scores
+- `organizations` - Organization entity (name, slug)
+- `users` - User entity (username, email, passwordHash, displayName, role, organizationId)
+- `project_members` - Many-to-many project ↔ user mapping with role (viewer/editor)
+- `projects` - Core project entity with confidence scores, organizationId
 - `inputs` - All project inputs (text, meeting notes, PDF, files)
 - `structured_items` - AI-extracted structured data (requirements, decisions, constraints, etc.)
 - `summaries` - Versioned project summaries (JSON)
@@ -56,25 +74,35 @@ client/src/
     locales/ja.json           - Japanese translations (default)
     locales/en.json           - English translations
     locales/vi.json           - Vietnamese translations
-  pages/dashboard.tsx         - Project list with filters
-  pages/project-detail.tsx    - Full project view with tabs
-  components/layout.tsx       - App layout wrapper + language switcher
-  components/language-switcher.tsx - Language selector dropdown
-  components/create-project-dialog.tsx
-  components/input-panel.tsx  - Common input UI
-  components/summary-display.tsx
-  components/structured-items-panel.tsx
-  components/documents-panel.tsx
-  components/inputs-history.tsx
-  components/summary-history.tsx
-  components/confidence-gauge.tsx
+  lib/
+    auth.tsx                  - AuthProvider, useAuth, getToken
+    queryClient.ts            - TanStack Query client with auth headers
+  pages/
+    dashboard.tsx             - Project list with filters
+    project-detail.tsx        - Full project view with tabs
+    login.tsx                 - Login page
+    user-management.tsx       - User CRUD (role-scoped)
+    org-management.tsx        - Organization CRUD
+  components/
+    layout.tsx                - App layout with nav, user info, logout
+    language-switcher.tsx     - Language selector dropdown
+    create-project-dialog.tsx
+    input-panel.tsx           - Common input UI
+    summary-display.tsx
+    structured-items-panel.tsx
+    documents-panel.tsx
+    inputs-history.tsx
+    summary-history.tsx
+    confidence-gauge.tsx
+    slide-viewer.tsx
 
 server/
+  auth.ts       - JWT auth middleware (requireAuth, requireRole, requireProjectAccess)
   db.ts         - Database connection
-  storage.ts    - Data access layer (IStorage)
-  routes.ts     - API routes
+  storage.ts    - Data access layer (IStorage) with user/org/member CRUD
+  routes.ts     - API routes (all protected with auth)
   openai.ts     - AI service (extraction, summary, document gen)
-  seed.ts       - Seed data
+  migrate-translations.ts - Data migration + default admin seeding
 
 shared/
   schema.ts     - Drizzle schema + Zod types
@@ -82,15 +110,38 @@ shared/
 
 ## Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string (auto-provisioned)
-- `OPENAI_API_KEY` - OpenAI API key (required, server won't start without it)
-- `SESSION_SECRET` - Session secret
+- `OPENAI_API_KEY` - OpenAI API key (required)
+- `SESSION_SECRET` - JWT signing secret
 
 ## API Endpoints
-- `GET/POST /api/projects` - List/create projects
+### Auth
+- `POST /api/auth/login` - Login (username/email + password) → JWT token
+- `GET /api/auth/me` - Get current user
+- `PATCH /api/auth/me` - Update own profile
+
+### Organizations
+- `GET /api/organizations` - List all orgs
+- `POST /api/organizations` - Create org (system_admin only)
+- `PATCH /api/organizations/:id` - Update org
+- `DELETE /api/organizations/:id` - Delete org (system_admin only)
+
+### Users
+- `GET /api/users` - List users (filtered by role/org)
+- `POST /api/users` - Create user (admin/org_admin/pm)
+- `PATCH /api/users/:id` - Update user
+- `DELETE /api/users/:id` - Delete user
+
+### Projects
+- `GET /api/projects` - List projects (filtered by user permissions)
+- `POST /api/projects` - Create project (admin/org_admin/pm)
 - `GET/PATCH/DELETE /api/projects/:id` - Get/update/delete project
-- `GET/POST /api/projects/:id/inputs` - List/add inputs (supports multipart file upload)
+- `GET/POST/DELETE /api/projects/:id/members` - Project member management
+
+### Project Data
+- `GET/POST /api/projects/:id/inputs` - List/add inputs
 - `GET /api/projects/:id/structured-items` - Extracted data
 - `GET /api/projects/:id/summaries` - Summary history
 - `GET /api/projects/:id/summary/latest` - Latest summary
 - `GET /api/projects/:id/documents` - Generated documents
-- `POST /api/projects/:id/documents/generate` - Generate document (body: {type: "kickoff" | "feature_proposal"})
+- `POST /api/projects/:id/documents/generate` - Generate document
+- `POST /api/transcribe` - Audio transcription (Whisper)

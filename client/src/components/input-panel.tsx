@@ -9,6 +9,14 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import { Send, Upload, FileText, X, Loader2, CheckCircle2, AlertCircle, Mic, Square, Music } from "lucide-react";
+import { getToken } from "@/lib/auth";
+
+function authHeaders(extra?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = { ...extra };
+  const token = getToken();
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return headers;
+}
 
 interface InputPanelProps {
   projectId: number;
@@ -58,7 +66,7 @@ export function InputPanel({ projectId }: InputPanelProps) {
     stopPolling();
     pollRef.current = setInterval(async () => {
       try {
-        const res = await fetch(`/api/processing-status/${taskKey}`);
+        const res = await fetch(`/api/processing-status/${taskKey}`, { headers: authHeaders() });
         const data = await res.json();
         if (data.status === "done") {
           stopPolling();
@@ -134,6 +142,7 @@ export function InputPanel({ projectId }: InputPanelProps) {
 
           const res = await fetch("/api/transcribe", {
             method: "POST",
+            headers: authHeaders(),
             body: formData,
           });
 
@@ -184,6 +193,7 @@ export function InputPanel({ projectId }: InputPanelProps) {
 
       const res = await fetch("/api/transcribe", {
         method: "POST",
+        headers: authHeaders(),
         body: formData,
       });
 
@@ -224,6 +234,7 @@ export function InputPanel({ projectId }: InputPanelProps) {
 
       const res = await fetch(`/api/projects/${projectId}/inputs`, {
         method: "POST",
+        headers: authHeaders(),
         body: formData,
       });
 
