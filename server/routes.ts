@@ -408,11 +408,12 @@ export async function registerRoutes(
           inputType = "rfp_pdf";
           try {
             const { PDFParse, VerbosityLevel } = await import("pdf-parse");
-            const parser = new PDFParse({ verbosity: VerbosityLevel.ERRORS });
             const dataBuffer = fs.readFileSync(req.file.path);
-            await parser.load(dataBuffer);
-            rawText = await parser.getText();
-            parser.destroy();
+            const parser = new PDFParse({ data: new Uint8Array(dataBuffer), verbosity: VerbosityLevel.ERRORS });
+            await parser.load();
+            const result = await parser.getText();
+            rawText = typeof result === "string" ? result : result?.text || "";
+            await parser.destroy();
             if (!rawText.trim()) {
               rawText = "[PDF text extraction failed - this may be a scanned PDF requiring OCR (Phase 2)]";
             }
@@ -584,11 +585,12 @@ export async function registerRoutes(
           inputType = "rfp_pdf";
           try {
             const { PDFParse, VerbosityLevel } = await import("pdf-parse");
-            const parser = new PDFParse({ verbosity: VerbosityLevel.ERRORS });
             const dataBuffer = fs.readFileSync(req.file.path);
-            await parser.load(dataBuffer);
-            rawText = await parser.getText();
-            parser.destroy();
+            const parser = new PDFParse({ data: new Uint8Array(dataBuffer), verbosity: VerbosityLevel.ERRORS });
+            await parser.load();
+            const result = await parser.getText();
+            rawText = typeof result === "string" ? result : result?.text || "";
+            await parser.destroy();
             if (!rawText.trim()) {
               rawText = "[PDF text extraction failed - this may be a scanned PDF requiring OCR (Phase 2)]";
             }
@@ -908,11 +910,12 @@ export async function registerRoutes(
         try {
           if (fs.existsSync(input.filePath!)) {
             const { PDFParse: PDFParseClass, VerbosityLevel: VL } = await import("pdf-parse");
-            const parser = new PDFParseClass({ verbosity: VL.ERRORS });
             const dataBuffer = fs.readFileSync(input.filePath!);
-            await parser.load(dataBuffer);
-            const newText = await parser.getText();
-            parser.destroy();
+            const parser = new PDFParseClass({ data: new Uint8Array(dataBuffer), verbosity: VL.ERRORS });
+            await parser.load();
+            const pdfResult = await parser.getText();
+            const newText = typeof pdfResult === "string" ? pdfResult : pdfResult?.text || "";
+            await parser.destroy();
             if (newText.trim()) {
               await storage.updateInput(input.id, { rawText: newText });
               (input as any).rawText = newText;

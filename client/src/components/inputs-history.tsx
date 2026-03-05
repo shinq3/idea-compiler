@@ -13,7 +13,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FileText, MessageSquare, File, Clock, Pencil, Trash2, Save, X } from "lucide-react";
+import { FileText, MessageSquare, File, Clock, Pencil, Trash2, Save, X, RefreshCw, Loader2 } from "lucide-react";
 import { pickLang, type Input } from "@shared/schema";
 
 const typeIcons: Record<string, any> = {
@@ -48,6 +48,30 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
 
   const { data: inputs, isLoading } = useQuery<Input[]>({
     queryKey: [`/api/projects/${projectId}/inputs`],
+  });
+
+  const hasFailedInputs = inputs?.some((i) => i.rawText?.startsWith("[")) ?? false;
+
+  const reprocessMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", `/api/projects/${projectId}/reprocess`);
+      return res.json();
+    },
+    onSuccess: (data) => {
+      if (data.reprocessed > 0) {
+        toast({ title: t("structuredItems.reprocessing"), description: `${data.reprocessed} input(s)` });
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/inputs`] });
+          queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/structured-items`] });
+          queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/summary/latest`] });
+        }, 15000);
+      } else {
+        toast({ title: t("structuredItems.noUnprocessed") });
+      }
+    },
+    onError: (err: any) => {
+      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    },
   });
 
   const editMutation = useMutation({
@@ -123,6 +147,24 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
 
   return (
     <>
+      {canManage && hasFailedInputs && (
+        <div className="mb-3 flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => reprocessMutation.mutate()}
+            disabled={reprocessMutation.isPending}
+            data-testid="button-reprocess-inputs"
+          >
+            {reprocessMutation.isPending ? (
+              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+            ) : (
+              <RefreshCw className="w-3 h-3 mr-1" />
+            )}
+            {t("structuredItems.reprocess")}
+          </Button>
+        </div>
+      )}
       <ScrollArea className="max-h-[500px]">
         <div className="space-y-3 pr-3">
           {inputs.map((input) => {
