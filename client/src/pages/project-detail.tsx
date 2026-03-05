@@ -26,9 +26,14 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   ArrowLeft, MessageSquare, FileText, Database, FolderOpen,
-  History, Pencil, ChevronDown, ChevronRight, Building2, Users,
+  History, Pencil, ChevronDown, ChevronRight, Building2, Users, Trash2,
 } from "lucide-react";
+import { useLocation } from "wouter";
 import { pickLang, type Project, type Summary } from "@shared/schema";
 
 interface OrgData {
@@ -45,6 +50,8 @@ export default function ProjectDetail() {
   const { user: currentUser, isAdmin } = useAuth();
   const { toast } = useToast();
   const [summaryOpen, setSummaryOpen] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [, navigate] = useLocation();
 
   const canManageProject = currentUser && ["system_admin", "org_admin", "pm"].includes(currentUser.role);
 
@@ -74,6 +81,20 @@ export default function ProjectDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    },
+  });
+
+  const deleteProjectMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", `/api/projects/${projectId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      toast({ title: t("projectDetail.deleted") });
+      navigate("/");
+    },
+    onError: (err: any) => {
+      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
     },
   });
 
@@ -160,21 +181,32 @@ export default function ProjectDetail() {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {canManageProject ? (
-              <Select
-                value={project.status}
-                onValueChange={(val) => updateStatusMutation.mutate(val)}
-              >
-                <SelectTrigger className="w-[140px]" data-testid="select-status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="discovery">{t("status.discovery")}</SelectItem>
-                  <SelectItem value="proposal">{t("status.proposal")}</SelectItem>
-                  <SelectItem value="negotiation">{t("status.negotiation")}</SelectItem>
-                  <SelectItem value="won">{t("status.won")}</SelectItem>
-                  <SelectItem value="lost">{t("status.lost")}</SelectItem>
-                </SelectContent>
-              </Select>
+              <>
+                <Select
+                  value={project.status}
+                  onValueChange={(val) => updateStatusMutation.mutate(val)}
+                >
+                  <SelectTrigger className="w-[140px]" data-testid="select-status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="discovery">{t("status.discovery")}</SelectItem>
+                    <SelectItem value="proposal">{t("status.proposal")}</SelectItem>
+                    <SelectItem value="negotiation">{t("status.negotiation")}</SelectItem>
+                    <SelectItem value="won">{t("status.won")}</SelectItem>
+                    <SelectItem value="lost">{t("status.lost")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => setShowDeleteDialog(true)}
+                  data-testid="button-delete-project"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </>
             ) : (
               <Badge variant="secondary" data-testid="badge-status">
                 {t(`status.${project.status}`)}
@@ -321,6 +353,27 @@ export default function ProjectDetail() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("projectDetail.confirmDelete")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("projectDetail.confirmDeleteDescription")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete-project">{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteProjectMutation.mutate()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-delete-project"
+            >
+              {deleteProjectMutation.isPending ? t("common.processing") : t("common.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 }

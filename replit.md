@@ -25,18 +25,22 @@ A web application that helps nurture business projects from RFP to kickoff. Proj
 ## Key Features
 1. **Project Dashboard** - Overview of all projects with filtering/search
 2. **Project Creation** - Title-only or with RFP PDF upload
-3. **Common Input UI** - Text, meeting notes, and file uploads
-4. **AI Analysis** - Automatic structured data extraction from inputs
-5. **Auto-Summary** - AI generates and versions project summaries
-6. **Document Generation** - Kickoff documents and feature proposals
-7. **Confidence Gauges** - Budget/timeline/requirement confidence tracking
-8. **Slide Generation** - Convert docs to HTML slides, viewable in-app and downloadable
-9. **PWA Support** - Installable as native app on mobile/desktop
-10. **Voice Input** - Browser recording → Whisper transcription → text insertion
-11. **Multilingual AI Content** - ja/en/vi simultaneous output
-12. **User Management** - CRUD users with role-based visibility
-13. **Organization Management** - CRUD organizations (system_admin creates/deletes)
-14. **Project Member Management** - Add/remove members to projects
+3. **Project Deletion** - Delete project with confirmation dialog (cascades to all related data)
+4. **Common Input UI** - Text, meeting notes, and file uploads
+5. **Input Editing** - Edit input text in history tab; triggers re-extraction and summary regeneration
+6. **Input Deletion** - Delete individual inputs; triggers summary regeneration from remaining inputs
+7. **AI Analysis** - Automatic structured data extraction from inputs
+8. **Auto-Summary** - AI generates and versions project summaries
+9. **Document Generation** - Kickoff documents and feature proposals
+10. **Confidence Gauges** - Budget/timeline/requirement confidence tracking
+11. **Slide Generation** - Convert docs to HTML slides, viewable in-app and downloadable
+12. **PWA Support** - Installable as native app on mobile/desktop
+13. **Voice Input** - Browser recording → Whisper transcription → text insertion
+14. **Multilingual AI Content** - ja/en/vi simultaneous output
+15. **User Management** - CRUD users with role-based visibility
+16. **Organization Management** - CRUD organizations (system_admin creates/deletes)
+17. **Project Member Management** - Add/remove members to projects
+18. **Profile Page** - Edit display name, email, and password
 
 ## Data Flow
 Input (text/file) → PDF extraction (if PDF) → AI structured extraction (multilingual) → Summary update (multilingual) → DB save

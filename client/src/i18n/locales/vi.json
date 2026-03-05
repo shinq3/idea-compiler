@@ -136,7 +136,10 @@
     "targetRelease": "Ngay phat hanh muc tieu",
     "created": "Ngay tao",
     "lastUpdated": "Cap nhat lan cuoi",
-    "orgUpdated": "Da cap nhat to chuc"
+    "orgUpdated": "Da cap nhat to chuc",
+    "deleted": "Da xoa du an",
+    "confirmDelete": "Xoa du an nay?",
+    "confirmDeleteDescription": "Hanh dong nay khong the hoan tac. Tat ca nhap lieu, du lieu trich xuat, tom tat va tai lieu lien quan den du an se bi xoa vinh vien."
   },
   "tabs": {
     "input": "Nhap lieu",
@@ -184,6 +187,10 @@
   },
   "inputHistory": {
     "noInputs": "Chua co nhap lieu nao. Su dung bieu mau nhap lieu o tren de them thong tin.",
+    "updated": "Da cap nhat nhap lieu. Dang tao lai tom tat va du lieu trich xuat...",
+    "deleted": "Da xoa nhap lieu. Dang tao lai tom tat...",
+    "confirmDelete": "Xoa nhap lieu nay?",
+    "confirmDeleteDescription": "Du lieu trich xuat cho nhap lieu nay cung se bi xoa va tom tat se duoc tao lai.",
     "typeLabels": {
       "text": "Van ban",
       "meeting_note": "Ghi chu cuoc hop",

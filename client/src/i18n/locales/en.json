@@ -136,7 +136,10 @@
     "targetRelease": "Target Release",
     "created": "Created",
     "lastUpdated": "Last Updated",
-    "orgUpdated": "Organization updated"
+    "orgUpdated": "Organization updated",
+    "deleted": "Project deleted",
+    "confirmDelete": "Delete this project?",
+    "confirmDeleteDescription": "This action cannot be undone. All inputs, extracted data, summaries, and documents associated with this project will be permanently deleted."
   },
   "tabs": {
     "input": "Input",
@@ -184,6 +187,10 @@
   },
   "inputHistory": {
     "noInputs": "No inputs yet. Use the input form above to add information.",
+    "updated": "Input updated. Regenerating summary and extracted data...",
+    "deleted": "Input deleted. Regenerating summary...",
+    "confirmDelete": "Delete this input?",
+    "confirmDeleteDescription": "The extracted data for this input will also be deleted, and the summary will be regenerated.",
     "typeLabels": {
       "text": "Text",
       "meeting_note": "Meeting Notes",

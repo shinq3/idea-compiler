@@ -27,6 +27,7 @@ export interface IStorage {
   createInput(data: InsertInput): Promise<Input>;
   updateInput(id: number, data: Partial<{ rawText: string; translatedJson: any }>): Promise<void>;
   updateInputTranslation(id: number, translatedJson: any): Promise<void>;
+  deleteInput(id: number): Promise<void>;
 
   getStructuredItemsByProject(projectId: number): Promise<StructuredItem[]>;
   createStructuredItem(data: InsertStructuredItem): Promise<StructuredItem>;
@@ -135,6 +136,10 @@ class DatabaseStorage implements IStorage {
 
   async updateInputTranslation(id: number, translatedJson: any): Promise<void> {
     await db.update(inputs).set({ translatedJson }).where(eq(inputs.id, id));
+  }
+
+  async deleteInput(id: number): Promise<void> {
+    await db.delete(inputs).where(eq(inputs.id, id));
   }
 
   async getStructuredItemsByProject(projectId: number): Promise<StructuredItem[]> {

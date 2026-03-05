@@ -653,6 +653,66 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/projects/:id/inputs/:inputId", requireAuth, requireProjectAccess, requireRole("system_admin", "org_admin", "pm"), async (req, res) => {
+    try {
+      const projectId = Number(req.params.id);
+      const inputId = Number(req.params.inputId);
+      const { rawText } = req.body;
+      if (!rawText || typeof rawText !== "string" || !rawText.trim()) {
+        return res.status(400).json({ message: "rawText is required" });
+      }
+      const input = await storage.getInput(inputId);
+      if (!input || input.projectId !== projectId) {
+        return res.status(404).json({ message: "Input not found" });
+      }
+      await storage.deleteStructuredItemsByInput(inputId);
+      await storage.updateInput(inputId, { rawText: rawText.trim(), translatedJson: null });
+      processInputText(projectId, inputId, rawText.trim()).catch((err) => {
+        console.error(`Error reprocessing edited input ${inputId}:`, err);
+      });
+      const updated = await storage.getInput(inputId);
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete("/api/projects/:id/inputs/:inputId", requireAuth, requireProjectAccess, requireRole("system_admin", "org_admin", "pm"), async (req, res) => {
+    try {
+      const projectId = Number(req.params.id);
+      const inputId = Number(req.params.inputId);
+      const input = await storage.getInput(inputId);
+      if (!input || input.projectId !== projectId) {
+        return res.status(404).json({ message: "Input not found" });
+      }
+      if (input.filePath) {
+        try { fs.unlinkSync(input.filePath); } catch {}
+      }
+      await storage.deleteStructuredItemsByInput(inputId);
+      await storage.deleteInput(inputId);
+      if (input.type === "meeting_note") {
+        const project = await storage.getProject(projectId);
+        if (project && project.meetingCount > 0) {
+          await storage.updateProject(projectId, { meetingCount: project.meetingCount - 1 });
+        }
+      }
+      await storage.updateProjectConfidence(projectId);
+      const allInputs = await storage.getInputsByProject(projectId);
+      const allItems = await storage.getStructuredItemsByProject(projectId);
+      if (allInputs.length > 0) {
+        const existingSummary = await storage.getLatestSummary(projectId);
+        const combinedText = allInputs.map((i) => i.rawText).join("\n\n---\n\n");
+        const { generateSummary } = await import("./openai.js");
+        const summaryJson = await generateSummary(combinedText, allItems, existingSummary?.summaryJson || null);
+        const version = existingSummary ? existingSummary.version + 1 : 1;
+        await storage.createSummary({ projectId, version, summaryJson });
+      }
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.post("/api/transcribe", requireAuth, audioUpload.single("audio"), async (req, res) => {
     try {
       if (!req.file) {

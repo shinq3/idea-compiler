@@ -136,7 +136,10 @@
     "targetRelease": "目標リリース",
     "created": "作成日",
     "lastUpdated": "最終更新日",
-    "orgUpdated": "組織を変更しました"
+    "orgUpdated": "組織を変更しました",
+    "deleted": "案件を削除しました",
+    "confirmDelete": "この案件を削除しますか？",
+    "confirmDeleteDescription": "この操作は取り消せません。案件に関連するすべての入力、抽出データ、サマリー、ドキュメントが削除されます。"
   },
   "tabs": {
     "input": "入力",
@@ -184,6 +187,10 @@
   },
   "inputHistory": {
     "noInputs": "入力がまだありません。上の入力フォームから情報を追加してください。",
+    "updated": "入力を更新しました。サマリーと抽出データを再作成中...",
+    "deleted": "入力を削除しました。サマリーを再作成中...",
+    "confirmDelete": "この入力を削除しますか？",
+    "confirmDeleteDescription": "この入力に関連する抽出データも削除され、サマリーが再作成されます。",
     "typeLabels": {
       "text": "テキスト",
       "meeting_note": "会議メモ",
