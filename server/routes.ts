@@ -407,14 +407,17 @@ export async function registerRoutes(
         if (ext === ".pdf") {
           inputType = "rfp_pdf";
           try {
-            const pdfParse = (await import("pdf-parse")).default;
+            const { PDFParse, VerbosityLevel } = await import("pdf-parse");
+            const parser = new PDFParse({ verbosity: VerbosityLevel.ERRORS });
             const dataBuffer = fs.readFileSync(req.file.path);
-            const pdfData = await pdfParse(dataBuffer);
-            rawText = pdfData.text;
+            await parser.load(dataBuffer);
+            rawText = await parser.getText();
+            parser.destroy();
             if (!rawText.trim()) {
               rawText = "[PDF text extraction failed - this may be a scanned PDF requiring OCR (Phase 2)]";
             }
-          } catch {
+          } catch (err: any) {
+            console.error("[PDF parse error]", err?.message || err);
             rawText = "[PDF text extraction failed - unsupported format]";
           }
         } else if ([".txt", ".md"].includes(ext)) {
@@ -580,14 +583,17 @@ export async function registerRoutes(
         if (ext === ".pdf") {
           inputType = "rfp_pdf";
           try {
-            const pdfParse = (await import("pdf-parse")).default;
+            const { PDFParse, VerbosityLevel } = await import("pdf-parse");
+            const parser = new PDFParse({ verbosity: VerbosityLevel.ERRORS });
             const dataBuffer = fs.readFileSync(req.file.path);
-            const pdfData = await pdfParse(dataBuffer);
-            rawText = pdfData.text;
+            await parser.load(dataBuffer);
+            rawText = await parser.getText();
+            parser.destroy();
             if (!rawText.trim()) {
               rawText = "[PDF text extraction failed - this may be a scanned PDF requiring OCR (Phase 2)]";
             }
-          } catch {
+          } catch (err: any) {
+            console.error("[PDF parse error]", err?.message || err);
             rawText = "[PDF text extraction failed - unsupported format]";
           }
         } else if ([".txt", ".md"].includes(ext)) {
@@ -834,7 +840,31 @@ export async function registerRoutes(
       const allItems = await storage.getStructuredItemsByProject(projectId);
 
       const inputIdsWithItems = new Set(allItems.map((item) => item.inputId).filter(Boolean));
-      const unprocessed = allInputs.filter((input) => !inputIdsWithItems.has(input.id) && input.rawText && !input.rawText.startsWith("["));
+
+      const failedPdfInputs = allInputs.filter((input) =>
+        !inputIdsWithItems.has(input.id) && input.rawText && input.rawText.startsWith("[PDF text extraction failed") && input.filePath
+      );
+      for (const input of failedPdfInputs) {
+        try {
+          if (fs.existsSync(input.filePath!)) {
+            const { PDFParse: PDFParseClass, VerbosityLevel: VL } = await import("pdf-parse");
+            const parser = new PDFParseClass({ verbosity: VL.ERRORS });
+            const dataBuffer = fs.readFileSync(input.filePath!);
+            await parser.load(dataBuffer);
+            const newText = await parser.getText();
+            parser.destroy();
+            if (newText.trim()) {
+              await storage.updateInput(input.id, { rawText: newText });
+              (input as any).rawText = newText;
+            }
+          }
+        } catch (err: any) {
+          console.error(`[reprocess] Re-parse PDF for input ${input.id} failed:`, err?.message);
+        }
+      }
+
+      const updatedInputs = await storage.getInputsByProject(projectId);
+      const unprocessed = updatedInputs.filter((input) => !inputIdsWithItems.has(input.id) && input.rawText && !input.rawText.startsWith("["));
 
       if (unprocessed.length === 0) {
         return res.json({ message: "No unprocessed inputs found", reprocessed: 0 });

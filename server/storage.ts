@@ -25,6 +25,7 @@ export interface IStorage {
   getInputsByProject(projectId: number): Promise<Input[]>;
   getInput(id: number): Promise<Input | undefined>;
   createInput(data: InsertInput): Promise<Input>;
+  updateInput(id: number, data: Partial<{ rawText: string; translatedJson: any }>): Promise<void>;
   updateInputTranslation(id: number, translatedJson: any): Promise<void>;
 
   getStructuredItemsByProject(projectId: number): Promise<StructuredItem[]>;
@@ -126,6 +127,10 @@ class DatabaseStorage implements IStorage {
     const [input] = await db.insert(inputs).values(data).returning();
     await db.update(projects).set({ updatedAt: new Date() }).where(eq(projects.id, data.projectId));
     return input;
+  }
+
+  async updateInput(id: number, data: Partial<{ rawText: string; translatedJson: any }>): Promise<void> {
+    await db.update(inputs).set(data).where(eq(inputs.id, id));
   }
 
   async updateInputTranslation(id: number, translatedJson: any): Promise<void> {
