@@ -12,6 +12,46 @@ const MODEL = "o4-mini";
 
 console.log("[openai] Using OPENAI_API_KEY (model: o4-mini)");
 
+function safeJsonParse(content: string, fallback: any): any {
+  try {
+    return JSON.parse(content);
+  } catch (e) {
+    const repaired = content.replace(/,\s*([}\]])/g, "$1");
+    try {
+      return JSON.parse(repaired);
+    } catch {
+      // no-op
+    }
+
+    const lastBrace = content.lastIndexOf("}");
+    const lastBracket = content.lastIndexOf("]");
+    const cutoff = Math.max(lastBrace, lastBracket);
+    if (cutoff > 0) {
+      let truncated = content.substring(0, cutoff + 1);
+      let openBraces = (truncated.match(/{/g) || []).length;
+      let closeBraces = (truncated.match(/}/g) || []).length;
+      while (closeBraces < openBraces) {
+        truncated += "}";
+        closeBraces++;
+      }
+      let openBrackets = (truncated.match(/\[/g) || []).length;
+      let closeBrackets = (truncated.match(/]/g) || []).length;
+      while (closeBrackets < openBrackets) {
+        truncated += "]";
+        closeBrackets++;
+      }
+      try {
+        return JSON.parse(truncated);
+      } catch {
+        // no-op
+      }
+    }
+
+    console.error("Failed to parse JSON response, using fallback. First 200 chars:", content.substring(0, 200));
+    return fallback;
+  }
+}
+
 export async function transcribeAudio(filePath: string, fileName: string): Promise<string> {
   const fs = await import("fs");
   const file = fs.createReadStream(filePath);
@@ -38,7 +78,7 @@ export async function translateInputText(text: string): Promise<{ ja: string; en
     max_tokens: 8192,
   });
   const content = response.choices[0]?.message?.content || "{}";
-  const result = JSON.parse(content);
+  const result = safeJsonParse(content, {});
   return {
     ja: result.ja || text,
     en: result.en || text,
@@ -58,6 +98,7 @@ For array fields, each element must also be trilingual:
 export async function extractStructuredData(text: string): Promise<{
   items: Array<{ category: string; value: any; confidence: number }>;
 }> {
+  const truncated = text.substring(0, 8000);
   const response = await openai.chat.completions.create({
     model: MODEL,
     messages: [
@@ -85,14 +126,18 @@ For RFP/requirements documents, also extract:
 
 Be thorough but precise. Only extract clearly stated information.`,
       },
-      { role: "user", content: text },
+      { role: "user", content: truncated },
     ],
     response_format: { type: "json_object" },
-    max_completion_tokens: 8192,
+    max_completion_tokens: 16384,
   });
 
   const content = response.choices[0]?.message?.content || '{"items":[]}';
-  return JSON.parse(content);
+  const parsed = safeJsonParse(content, { items: [] });
+  if (!parsed.items || !Array.isArray(parsed.items)) {
+    parsed.items = [];
+  }
+  return parsed;
 }
 
 export async function generateSummary(
@@ -147,11 +192,11 @@ ${JSON.stringify(itemsByCategory, null, 2)}`,
       },
     ],
     response_format: { type: "json_object" },
-    max_completion_tokens: 8192,
+    max_completion_tokens: 16384,
   });
 
   const content = response.choices[0]?.message?.content || "{}";
-  return JSON.parse(content);
+  return safeJsonParse(content, {});
 }
 
 export async function generateDocument(
@@ -220,7 +265,7 @@ ${structuredItems.map((item) => `[${item.category}] (Input #${item.inputId}): ${
   });
 
   const content = response.choices[0]?.message?.content || '{"ja":"","en":"","vi":""}';
-  return JSON.parse(content);
+  return safeJsonParse(content, { ja: "", en: "", vi: "" });
 }
 
 export async function generateSlides(

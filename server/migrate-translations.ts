@@ -50,6 +50,12 @@ export async function migrateTranslations() {
         console.log(`[migrate] Input ${input.id} translated`);
       } catch (err) {
         console.error(`[migrate] Failed to translate input ${input.id}:`, err);
+        const fallback = { ja: input.rawText, en: input.rawText, vi: input.rawText };
+        await db
+          .update(inputs)
+          .set({ translatedJson: fallback })
+          .where(eq(inputs.id, input.id));
+        console.log(`[migrate] Input ${input.id} saved with fallback (original text)`);
       }
     }
   }
