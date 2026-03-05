@@ -155,10 +155,14 @@ export async function registerRoutes(
     try {
       const data: any = {};
       if (req.body.displayName) data.displayName = req.body.displayName;
+      if (req.body.email) data.email = req.body.email;
       if (req.body.password) data.passwordHash = await hashPassword(req.body.password);
       const user = await storage.updateUser(req.user!.id, data);
       res.json(stripPassword(user));
     } catch (error: any) {
+      if (error.message?.includes("duplicate") || error.message?.includes("unique")) {
+        return res.status(409).json({ message: "Email is already in use" });
+      }
       res.status(500).json({ message: error.message });
     }
   });

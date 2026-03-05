@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { FolderKanban, Users, Building2, LogOut } from "lucide-react";
+import { FolderKanban, Users, Building2, LogOut, UserCircle } from "lucide-react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/i18n";
@@ -75,12 +75,15 @@ export function Layout({ children, title, actions }: LayoutProps) {
             {actions}
             {user && (
               <div className="flex items-center gap-2">
-                <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span data-testid="text-current-user">{user.displayName}</span>
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0" data-testid="badge-user-role">
-                    {t(`roles.${user.role}`)}
-                  </Badge>
-                </div>
+                <Link href="/profile">
+                  <button className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer" data-testid="link-profile">
+                    <UserCircle className="w-3.5 h-3.5" />
+                    <span data-testid="text-current-user">{user.displayName}</span>
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0" data-testid="badge-user-role">
+                      {t(`roles.${user.role}`)}
+                    </Badge>
+                  </button>
+                </Link>
                 <Button
                   variant="ghost"
                   size="icon"

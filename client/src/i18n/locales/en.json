@@ -248,6 +248,17 @@
     "title": "404 Page Not Found",
     "description": "The page you are looking for does not exist."
   },
+  "profile": {
+    "title": "Profile",
+    "basicInfo": "Basic Information",
+    "updated": "Profile updated",
+    "changePassword": "Change Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "passwordChanged": "Password changed",
+    "passwordMismatch": "Passwords do not match",
+    "usernameReadonly": "Username cannot be changed"
+  },
   "language": {
     "label": "Language",
     "ja": "日本語",

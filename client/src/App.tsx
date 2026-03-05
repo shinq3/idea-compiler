@@ -11,6 +11,7 @@ import ProjectDetail from "@/pages/project-detail";
 import Login from "@/pages/login";
 import UserManagement from "@/pages/user-management";
 import OrgManagement from "@/pages/org-management";
+import Profile from "@/pages/profile";
 import { Loader2 } from "lucide-react";
 
 function ProtectedRoute({ component: Component, requiredRoles, ...rest }: any) {
@@ -62,6 +63,9 @@ function Router() {
       </Route>
       <Route path="/organizations">
         <ProtectedRoute component={OrgManagement} requiredRoles={["system_admin", "org_admin"]} />
+      </Route>
+      <Route path="/profile">
+        <ProtectedRoute component={Profile} />
       </Route>
       <Route component={NotFound} />
     </Switch>

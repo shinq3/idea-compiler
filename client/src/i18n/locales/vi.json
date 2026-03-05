@@ -248,6 +248,17 @@
     "title": "404 Khong tim thay trang",
     "description": "Trang ban dang tim khong ton tai."
   },
+  "profile": {
+    "title": "Ho so",
+    "basicInfo": "Thong tin co ban",
+    "updated": "Da cap nhat ho so",
+    "changePassword": "Doi mat khau",
+    "newPassword": "Mat khau moi",
+    "confirmPassword": "Xac nhan mat khau",
+    "passwordChanged": "Da doi mat khau",
+    "passwordMismatch": "Mat khau khong khop",
+    "usernameReadonly": "Khong the thay doi ten dang nhap"
+  },
   "language": {
     "label": "Ngon ngu",
     "ja": "日本語",

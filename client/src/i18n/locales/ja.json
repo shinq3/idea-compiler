@@ -248,6 +248,17 @@
     "title": "404 ページが見つかりません",
     "description": "お探しのページは存在しません。"
   },
+  "profile": {
+    "title": "プロフィール",
+    "basicInfo": "基本情報",
+    "updated": "プロフィールを更新しました",
+    "changePassword": "パスワード変更",
+    "newPassword": "新しいパスワード",
+    "confirmPassword": "パスワード確認",
+    "passwordChanged": "パスワードを変更しました",
+    "passwordMismatch": "パスワードが一致しません",
+    "usernameReadonly": "ユーザー名は変更できません"
+  },
   "language": {
     "label": "言語",
     "ja": "日本語",
