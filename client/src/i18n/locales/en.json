@@ -221,7 +221,10 @@
       "risk": "Risk",
       "term": "Term",
       "action": "Action"
-    }
+    },
+    "reprocess": "Re-extract unprocessed inputs",
+    "reprocessing": "Re-extraction started",
+    "noUnprocessed": "No unprocessed inputs found"
   },
   "documents": {
     "generateKickoff": "Generate Kickoff Doc",

@@ -823,6 +823,31 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/projects/:id/reprocess", requireAuth, requireProjectAccess, requireRole("system_admin", "org_admin", "pm"), async (req, res) => {
+    try {
+      const projectId = Number(req.params.id);
+      const allInputs = await storage.getInputsByProject(projectId);
+      const allItems = await storage.getStructuredItemsByProject(projectId);
+
+      const inputIdsWithItems = new Set(allItems.map((item) => item.inputId).filter(Boolean));
+      const unprocessed = allInputs.filter((input) => !inputIdsWithItems.has(input.id) && input.rawText && !input.rawText.startsWith("["));
+
+      if (unprocessed.length === 0) {
+        return res.json({ message: "No unprocessed inputs found", reprocessed: 0 });
+      }
+
+      for (const input of unprocessed) {
+        processInputText(projectId, input.id, input.rawText).catch((err) => {
+          console.error(`Error reprocessing input ${input.id}:`, err);
+        });
+      }
+
+      res.json({ message: `Reprocessing ${unprocessed.length} input(s)`, reprocessed: unprocessed.length });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   return httpServer;
 }
 

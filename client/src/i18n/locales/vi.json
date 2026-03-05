@@ -221,7 +221,10 @@
       "risk": "Rui ro",
       "term": "Thuat ngu",
       "action": "Hanh dong"
-    }
+    },
+    "reprocess": "Trich xuat lai nhap lieu chua xu ly",
+    "reprocessing": "Bat dau trich xuat lai",
+    "noUnprocessed": "Khong co nhap lieu chua xu ly"
   },
   "documents": {
     "generateKickoff": "Tao tai lieu Kickoff",
