@@ -72,9 +72,8 @@ export function SummaryDisplay({ projectId }: SummaryDisplayProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h3 className="font-semibold text-sm" data-testid="text-summary-title">{t("summary.title")}</h3>
-        <Badge variant="secondary" className="text-xs">
+      <div className="flex items-center justify-end gap-2 flex-wrap">
+        <Badge variant="secondary" className="text-xs" data-testid="text-summary-version">
           <History className="w-3 h-3 mr-1" />
           v{summary.version}
         </Badge>
