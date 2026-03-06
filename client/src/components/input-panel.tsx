@@ -396,28 +396,28 @@ export function InputPanel({ projectId }: InputPanelProps) {
           )}
           <Button
             variant="outline"
-            size="icon"
-            className="h-10 w-10 shrink-0"
+            size="lg"
+            className="gap-2"
             onClick={() => fileRef.current?.click()}
             data-testid="button-input-file"
-            title={t("input.uploadFile")}
           >
             <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
               <Upload className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             </div>
+            {t("input.uploadFile")}
           </Button>
           <Button
             variant="outline"
-            size="icon"
-            className="h-10 w-10 shrink-0"
+            size="lg"
+            className="gap-2"
             onClick={() => audioFileRef.current?.click()}
             disabled={voiceState !== "idle"}
             data-testid="button-upload-audio"
-            title={t("input.uploadAudio")}
           >
             <div className="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
               <Music className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
             </div>
+            {t("input.uploadAudio")}
           </Button>
         </div>
         <Button
