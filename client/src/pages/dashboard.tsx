@@ -107,15 +107,15 @@ export default function Dashboard() {
           <div className="rounded-md border">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[200px]">{t("dashboard.table.project")}</TableHead>
-                  <TableHead>{t("dashboard.table.customer")}</TableHead>
-                  <TableHead>{t("dashboard.table.status")}</TableHead>
-                  <TableHead className="text-center">{t("dashboard.table.meetings")}</TableHead>
-                  <TableHead className="text-center">{t("dashboard.table.confidence")}</TableHead>
-                  <TableHead>{t("dashboard.table.budget")}</TableHead>
-                  <TableHead>{t("dashboard.table.targetDate")}</TableHead>
-                  <TableHead className="text-right">{t("dashboard.table.updated")}</TableHead>
+                <TableRow className="bg-primary/10 dark:bg-primary/20">
+                  <TableHead className="min-w-[200px] text-primary font-semibold">{t("dashboard.table.project")}</TableHead>
+                  <TableHead className="text-primary font-semibold">{t("dashboard.table.customer")}</TableHead>
+                  <TableHead className="text-primary font-semibold">{t("dashboard.table.status")}</TableHead>
+                  <TableHead className="text-center text-primary font-semibold">{t("dashboard.table.meetings")}</TableHead>
+                  <TableHead className="text-center text-primary font-semibold">{t("dashboard.table.confidence")}</TableHead>
+                  <TableHead className="text-primary font-semibold">{t("dashboard.table.budget")}</TableHead>
+                  <TableHead className="text-primary font-semibold">{t("dashboard.table.targetDate")}</TableHead>
+                  <TableHead className="text-right text-primary font-semibold">{t("dashboard.table.updated")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
