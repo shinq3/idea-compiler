@@ -277,7 +277,7 @@ export function InputPanel({ projectId }: InputPanelProps) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
         <button
           onClick={() => { setInputType("text"); setFile(null); }}
           className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-200 ${
@@ -291,20 +291,6 @@ export function InputPanel({ projectId }: InputPanelProps) {
             <Pencil className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           </div>
           <span className="text-xs font-medium">{t("input.textMemo")}</span>
-        </button>
-        <button
-          onClick={() => { setInputType("meeting_note"); setFile(null); }}
-          className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-200 ${
-            inputType === "meeting_note" && !file
-              ? "border-amber-400 bg-amber-50 dark:bg-amber-950/40 shadow-sm"
-              : "border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20"
-          }`}
-          data-testid="button-input-meeting"
-        >
-          <div className="w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
-            <MessageSquare className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-          </div>
-          <span className="text-xs font-medium">{t("input.meetingNotes")}</span>
         </button>
         <button
           onClick={() => fileRef.current?.click()}
