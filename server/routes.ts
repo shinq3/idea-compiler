@@ -906,20 +906,24 @@ export async function registerRoutes(
       const failedPdfInputs = allInputs.filter((input) =>
         !inputIdsWithItems.has(input.id) && input.rawText && input.rawText.startsWith("[PDF text extraction failed") && input.filePath
       );
+      const missingFiles: number[] = [];
       for (const input of failedPdfInputs) {
         try {
-          if (fs.existsSync(input.filePath!)) {
-            const { PDFParse: PDFParseClass, VerbosityLevel: VL } = await import("pdf-parse");
-            const dataBuffer = fs.readFileSync(input.filePath!);
-            const parser = new PDFParseClass({ data: new Uint8Array(dataBuffer), verbosity: VL.ERRORS });
-            await parser.load();
-            const pdfResult = await parser.getText();
-            const newText = typeof pdfResult === "string" ? pdfResult : pdfResult?.text || "";
-            await parser.destroy();
-            if (newText.trim()) {
-              await storage.updateInput(input.id, { rawText: newText });
-              (input as any).rawText = newText;
-            }
+          if (!fs.existsSync(input.filePath!)) {
+            console.warn(`[reprocess] PDF file missing for input ${input.id}: ${input.filePath}`);
+            missingFiles.push(input.id);
+            continue;
+          }
+          const { PDFParse: PDFParseClass, VerbosityLevel: VL } = await import("pdf-parse");
+          const dataBuffer = fs.readFileSync(input.filePath!);
+          const parser = new PDFParseClass({ data: new Uint8Array(dataBuffer), verbosity: VL.ERRORS });
+          await parser.load();
+          const pdfResult = await parser.getText();
+          const newText = typeof pdfResult === "string" ? pdfResult : pdfResult?.text || "";
+          await parser.destroy();
+          if (newText.trim()) {
+            await storage.updateInput(input.id, { rawText: newText });
+            (input as any).rawText = newText;
           }
         } catch (err: any) {
           console.error(`[reprocess] Re-parse PDF for input ${input.id} failed:`, err?.message);
@@ -928,6 +932,14 @@ export async function registerRoutes(
 
       const updatedInputs = await storage.getInputsByProject(projectId);
       const unprocessed = updatedInputs.filter((input) => !inputIdsWithItems.has(input.id) && input.rawText && !input.rawText.startsWith("["));
+
+      if (unprocessed.length === 0 && missingFiles.length > 0) {
+        return res.status(400).json({
+          message: "PDF files are missing from the server. Please re-upload the PDF files using the re-upload button in the input history.",
+          reprocessed: 0,
+          missingFiles: missingFiles.length,
+        });
+      }
 
       if (unprocessed.length === 0) {
         return res.json({ message: "No unprocessed inputs found", reprocessed: 0 });
@@ -941,6 +953,69 @@ export async function registerRoutes(
 
       res.json({ message: `Reprocessing ${unprocessed.length} input(s)`, reprocessed: unprocessed.length });
     } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/projects/:id/inputs/:inputId/reupload", requireAuth, requireProjectAccess, requireRole("system_admin", "org_admin", "pm"), upload.single("file"), async (req, res) => {
+    try {
+      const projectId = Number(req.params.id);
+      const inputId = Number(req.params.inputId);
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const input = await storage.getInput(inputId);
+      if (!input || input.projectId !== projectId) {
+        fs.unlinkSync(req.file.path);
+        return res.status(404).json({ message: "Input not found" });
+      }
+
+      const ext = path.extname(req.file.originalname).toLowerCase();
+      let rawText = "";
+
+      if (ext === ".pdf") {
+        try {
+          const { PDFParse, VerbosityLevel } = await import("pdf-parse");
+          const dataBuffer = fs.readFileSync(req.file.path);
+          const parser = new PDFParse({ data: new Uint8Array(dataBuffer), verbosity: VerbosityLevel.ERRORS });
+          await parser.load();
+          const result = await parser.getText();
+          rawText = typeof result === "string" ? result : result?.text || "";
+          await parser.destroy();
+          if (!rawText.trim()) {
+            rawText = "[PDF text extraction failed - this may be a scanned PDF requiring OCR (Phase 2)]";
+          }
+        } catch (err: any) {
+          console.error("[PDF re-upload parse error]", err?.message || err);
+          rawText = "[PDF text extraction failed - unsupported format]";
+        }
+      } else if ([".txt", ".md"].includes(ext)) {
+        rawText = fs.readFileSync(req.file.path, "utf-8");
+      } else {
+        fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: `Unsupported file format: ${ext}` });
+      }
+
+      await storage.deleteStructuredItemsByInput(inputId);
+      await storage.updateInput(inputId, {
+        rawText,
+        filePath: req.file.path,
+        fileName: req.file.originalname,
+        translatedJson: null,
+      });
+
+      if (rawText && !rawText.startsWith("[")) {
+        processInputText(projectId, inputId, rawText).catch((err) => {
+          console.error(`Error processing re-uploaded input ${inputId}:`, err);
+        });
+      }
+
+      const updated = await storage.getInput(inputId);
+      res.json(updated);
+    } catch (error: any) {
+      if (req.file) fs.unlinkSync(req.file.path);
       res.status(500).json({ message: error.message });
     }
   });

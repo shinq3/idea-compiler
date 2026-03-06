@@ -231,7 +231,11 @@
     },
     "reprocess": "Trich xuat lai nhap lieu chua xu ly",
     "reprocessing": "Bat dau trich xuat lai",
-    "noUnprocessed": "Khong co nhap lieu chua xu ly"
+    "noUnprocessed": "Khong co nhap lieu chua xu ly",
+    "fileMissing": "Tep PDF khong co tren may chu. Vui long tai len lai.",
+    "reupload": "Tai len lai PDF",
+    "reuploading": "Dang tai len lai...",
+    "reuploadSuccess": "Da tai len lai PDF va bat dau xu ly"
   },
   "documents": {
     "generateKickoff": "Tao tai lieu Kickoff",

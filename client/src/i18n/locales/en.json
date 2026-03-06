@@ -231,7 +231,11 @@
     },
     "reprocess": "Re-extract unprocessed inputs",
     "reprocessing": "Re-extraction started",
-    "noUnprocessed": "No unprocessed inputs found"
+    "noUnprocessed": "No unprocessed inputs found",
+    "fileMissing": "PDF file is missing from server. Please re-upload.",
+    "reupload": "Re-upload PDF",
+    "reuploading": "Re-uploading...",
+    "reuploadSuccess": "PDF re-uploaded and processing started"
   },
   "documents": {
     "generateKickoff": "Generate Kickoff Doc",

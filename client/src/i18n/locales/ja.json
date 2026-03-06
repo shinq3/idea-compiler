@@ -231,7 +231,11 @@
     },
     "reprocess": "未処理の入力を再抽出",
     "reprocessing": "再抽出を開始しました",
-    "noUnprocessed": "未処理の入力はありません"
+    "noUnprocessed": "未処理の入力はありません",
+    "fileMissing": "PDFファイルがサーバーにありません。再アップロードしてください。",
+    "reupload": "PDFを再アップロード",
+    "reuploading": "再アップロード中...",
+    "reuploadSuccess": "PDFを再アップロードし、処理を開始しました"
   },
   "documents": {
     "generateKickoff": "キックオフ資料を生成",

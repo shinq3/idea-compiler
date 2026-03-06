@@ -13,7 +13,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FileText, MessageSquare, File, Clock, Pencil, Trash2, Save, X, RefreshCw, Loader2 } from "lucide-react";
+import { FileText, MessageSquare, File, Clock, Pencil, Trash2, Save, X, RefreshCw, Loader2, Upload } from "lucide-react";
 import { pickLang, type Input } from "@shared/schema";
 
 const typeIcons: Record<string, any> = {
@@ -43,6 +43,8 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Input | null>(null);
+  const [reuploadingId, setReuploadingId] = useState<number | null>(null);
+  const fileInputRef = useState<Record<number, HTMLInputElement | null>>(() => ({}))[0];
 
   const canManage = user && ["system_admin", "org_admin", "pm"].includes(user.role);
 
@@ -69,8 +71,13 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
         toast({ title: t("structuredItems.noUnprocessed") });
       }
     },
-    onError: (err: any) => {
-      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    onError: async (err: any) => {
+      const msg = err?.message || "";
+      if (msg.includes("missing") || msg.includes("re-upload")) {
+        toast({ title: t("structuredItems.fileMissing"), variant: "destructive" });
+      } else {
+        toast({ title: t("common.error"), description: msg, variant: "destructive" });
+      }
     },
   });
 
@@ -91,6 +98,33 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
       toast({ title: t("common.error"), description: err.message, variant: "destructive" });
     },
   });
+
+  const handleReupload = async (inputId: number, file: globalThis.File) => {
+    setReuploadingId(inputId);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const token = localStorage.getItem("casenurture_token");
+      const res = await fetch(`/api/projects/${projectId}/inputs/${inputId}/reupload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Re-upload failed");
+      }
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/inputs`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/structured-items`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/summary/latest`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
+      toast({ title: t("structuredItems.reuploadSuccess") });
+    } catch (err: any) {
+      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    } finally {
+      setReuploadingId(null);
+    }
+  };
 
   const deleteMutation = useMutation({
     mutationFn: async (inputId: number) => {
@@ -196,6 +230,36 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
                     </div>
                     {canManage && !isEditing && (
                       <div className="flex items-center gap-1">
+                        {input.rawText?.startsWith("[") && (input.type === "rfp_pdf" || input.type === "file") && (
+                          <>
+                            <input
+                              type="file"
+                              accept=".pdf,.txt,.md"
+                              className="hidden"
+                              ref={(el) => { fileInputRef[input.id] = el; }}
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleReupload(input.id, file);
+                                e.target.value = "";
+                              }}
+                              data-testid={`file-reupload-input-${input.id}`}
+                            />
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => fileInputRef[input.id]?.click()}
+                              disabled={reuploadingId === input.id}
+                              data-testid={`button-reupload-input-${input.id}`}
+                            >
+                              {reuploadingId === input.id ? (
+                                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                              ) : (
+                                <Upload className="w-3 h-3 mr-1" />
+                              )}
+                              {reuploadingId === input.id ? t("structuredItems.reuploading") : t("structuredItems.reupload")}
+                            </Button>
+                          </>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"

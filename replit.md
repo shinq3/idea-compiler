@@ -50,6 +50,12 @@ Input (text/file) → PDF extraction (if PDF) → AI structured extraction (mult
 - Polling stops automatically once data is available (confidence > 0, summary exists, items exist)
 - This ensures the UI updates after background AI processing finishes (typically 30-120s)
 
+## PDF Re-upload
+- If PDF extraction failed (rawText starts with "["), a "Re-upload PDF" button appears in input history
+- `POST /api/projects/:id/inputs/:inputId/reupload` replaces the file, re-extracts text, and triggers AI processing
+- This is needed because deployment restarts may lose uploaded files from local filesystem
+- Reprocess endpoint now returns specific error message when PDF files are missing from server
+
 ## Multilingual Content Format
 - **Structured Items**: `valueJson.title` and `valueJson.description` are `{ ja, en, vi }` objects
 - **Summaries**: `summaryJson` is `{ ja: { overview, ... }, en: { ... }, vi: { ... } }`
