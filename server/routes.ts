@@ -4,6 +4,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { z } from "zod";
+import { PDFParse, VerbosityLevel } from "pdf-parse";
 import { storage } from "./storage";
 import { extractStructuredData, generateSummary, generateDocument, generateSlides, transcribeAudio, translateInputText } from "./openai";
 import { requireAuth, requireRole, requireProjectAccess, hashPassword, verifyPassword, generateToken } from "./auth";
@@ -407,7 +408,6 @@ export async function registerRoutes(
         if (ext === ".pdf") {
           inputType = "rfp_pdf";
           try {
-            const { PDFParse, VerbosityLevel } = await import("pdf-parse");
             const dataBuffer = fs.readFileSync(req.file.path);
             const parser = new PDFParse({ data: new Uint8Array(dataBuffer), verbosity: VerbosityLevel.ERRORS });
             await parser.load();
@@ -584,7 +584,6 @@ export async function registerRoutes(
         if (ext === ".pdf") {
           inputType = "rfp_pdf";
           try {
-            const { PDFParse, VerbosityLevel } = await import("pdf-parse");
             const dataBuffer = fs.readFileSync(req.file.path);
             const parser = new PDFParse({ data: new Uint8Array(dataBuffer), verbosity: VerbosityLevel.ERRORS });
             await parser.load();
@@ -914,9 +913,8 @@ export async function registerRoutes(
             missingFiles.push(input.id);
             continue;
           }
-          const { PDFParse: PDFParseClass, VerbosityLevel: VL } = await import("pdf-parse");
           const dataBuffer = fs.readFileSync(input.filePath!);
-          const parser = new PDFParseClass({ data: new Uint8Array(dataBuffer), verbosity: VL.ERRORS });
+          const parser = new PDFParse({ data: new Uint8Array(dataBuffer), verbosity: VerbosityLevel.ERRORS });
           await parser.load();
           const pdfResult = await parser.getText();
           const newText = typeof pdfResult === "string" ? pdfResult : pdfResult?.text || "";
@@ -977,7 +975,6 @@ export async function registerRoutes(
 
       if (ext === ".pdf") {
         try {
-          const { PDFParse, VerbosityLevel } = await import("pdf-parse");
           const dataBuffer = fs.readFileSync(req.file.path);
           const parser = new PDFParse({ data: new Uint8Array(dataBuffer), verbosity: VerbosityLevel.ERRORS });
           await parser.load();
