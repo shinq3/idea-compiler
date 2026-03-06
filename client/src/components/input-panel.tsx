@@ -351,7 +351,7 @@ export function InputPanel({ projectId }: InputPanelProps) {
           placeholder={t("input.textPlaceholder")}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className="min-h-[35vh] max-h-[50vh] resize-y"
+          className="min-h-[25vh] max-h-[40vh] resize-y"
           data-testid="textarea-input"
         />
       )}
