@@ -30,6 +30,11 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
   ArrowLeft, MessageSquare, FileText, Database, FolderOpen,
   History, Pencil, ChevronDown, ChevronRight, Building2, Users, Trash2,
 } from "lucide-react";
@@ -51,6 +56,11 @@ export default function ProjectDetail() {
   const { toast } = useToast();
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: "", customerName: "", owner: "",
+    budgetMin: "", budgetMax: "", releaseDateTarget: "",
+  });
   const [, navigate] = useLocation();
 
   const canManageProject = currentUser && ["system_admin", "org_admin", "pm"].includes(currentUser.role);
@@ -106,6 +116,45 @@ export default function ProjectDetail() {
       toast({ title: t("common.error"), description: err.message, variant: "destructive" });
     },
   });
+
+  const openEditDialog = () => {
+    if (!project) return;
+    setEditForm({
+      title: project.title,
+      customerName: project.customerName || "",
+      owner: project.owner || "",
+      budgetMin: project.budgetMin?.toString() || "",
+      budgetMax: project.budgetMax?.toString() || "",
+      releaseDateTarget: project.releaseDateTarget || "",
+    });
+    setShowEditDialog(true);
+  };
+
+  const editProjectMutation = useMutation({
+    mutationFn: async (data: Record<string, any>) => {
+      const res = await apiRequest("PATCH", `/api/projects/${projectId}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      toast({ title: t("createProject.projectUpdated") });
+      setShowEditDialog(false);
+    },
+    onError: (err: any) => {
+      toast({ title: t("common.error"), description: err.message, variant: "destructive" });
+    },
+  });
+
+  const handleEditSubmit = () => {
+    const data: Record<string, any> = { title: editForm.title };
+    data.customerName = editForm.customerName || null;
+    data.owner = editForm.owner || null;
+    data.budgetMin = editForm.budgetMin ? Number(editForm.budgetMin) : null;
+    data.budgetMax = editForm.budgetMax ? Number(editForm.budgetMax) : null;
+    data.releaseDateTarget = editForm.releaseDateTarget || null;
+    editProjectMutation.mutate(data);
+  };
 
   const updateOrgMutation = useMutation({
     mutationFn: async (organizationId: number) => {
@@ -206,6 +255,14 @@ export default function ProjectDetail() {
                     <SelectItem value="lost">{t("status.lost")}</SelectItem>
                   </SelectContent>
                 </Select>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={openEditDialog}
+                  data-testid="button-edit-project"
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -383,6 +440,85 @@ export default function ProjectDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="sm:max-w-lg" data-testid="dialog-edit-project">
+          <DialogHeader>
+            <DialogTitle>{t("createProject.editProject")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label>{t("createProject.projectTitle")}</Label>
+              <Input
+                value={editForm.title}
+                onChange={(e) => setEditForm((f) => ({ ...f, title: e.target.value }))}
+                data-testid="input-edit-title"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>{t("createProject.customer")}</Label>
+                <Input
+                  value={editForm.customerName}
+                  onChange={(e) => setEditForm((f) => ({ ...f, customerName: e.target.value }))}
+                  placeholder={t("createProject.customerPlaceholder")}
+                  data-testid="input-edit-customer"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{t("createProject.owner")}</Label>
+                <Input
+                  value={editForm.owner}
+                  onChange={(e) => setEditForm((f) => ({ ...f, owner: e.target.value }))}
+                  placeholder={t("createProject.ownerPlaceholder")}
+                  data-testid="input-edit-owner"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>{t("createProject.budgetMin")}</Label>
+                <Input
+                  type="number"
+                  value={editForm.budgetMin}
+                  onChange={(e) => setEditForm((f) => ({ ...f, budgetMin: e.target.value }))}
+                  data-testid="input-edit-budget-min"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{t("createProject.budgetMax")}</Label>
+                <Input
+                  type="number"
+                  value={editForm.budgetMax}
+                  onChange={(e) => setEditForm((f) => ({ ...f, budgetMax: e.target.value }))}
+                  data-testid="input-edit-budget-max"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>{t("createProject.targetReleaseDate")}</Label>
+              <Input
+                type="date"
+                value={editForm.releaseDateTarget}
+                onChange={(e) => setEditForm((f) => ({ ...f, releaseDateTarget: e.target.value }))}
+                data-testid="input-edit-target-date"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => setShowEditDialog(false)} data-testid="button-cancel-edit-project">
+                {t("common.cancel")}
+              </Button>
+              <Button
+                onClick={handleEditSubmit}
+                disabled={!editForm.title.trim() || editProjectMutation.isPending}
+                data-testid="button-save-edit-project"
+              >
+                {editProjectMutation.isPending ? t("common.processing") : t("common.save")}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }

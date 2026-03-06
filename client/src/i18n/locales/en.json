@@ -125,7 +125,9 @@
     "selectOrg": "Select organization",
     "createProject": "Create Project",
     "projectCreated": "Project created",
-    "pdfAnalyzing": "PDF is being analyzed..."
+    "pdfAnalyzing": "PDF is being analyzed...",
+    "editProject": "Edit Project",
+    "projectUpdated": "Project updated"
   },
   "projectDetail": {
     "projectNotFound": "Project not found",

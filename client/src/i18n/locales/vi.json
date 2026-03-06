@@ -125,7 +125,9 @@
     "selectOrg": "Chon to chuc",
     "createProject": "Tao du an",
     "projectCreated": "Da tao du an",
-    "pdfAnalyzing": "Dang phan tich PDF..."
+    "pdfAnalyzing": "Dang phan tich PDF...",
+    "editProject": "Chinh sua du an",
+    "projectUpdated": "Da cap nhat du an"
   },
   "projectDetail": {
     "projectNotFound": "Khong tim thay du an",

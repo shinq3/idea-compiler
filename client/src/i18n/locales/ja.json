@@ -125,7 +125,9 @@
     "selectOrg": "組織を選択",
     "createProject": "案件を作成",
     "projectCreated": "案件を作成しました",
-    "pdfAnalyzing": "PDFを解析中..."
+    "pdfAnalyzing": "PDFを解析中...",
+    "editProject": "案件を編集",
+    "projectUpdated": "案件を更新しました"
   },
   "projectDetail": {
     "projectNotFound": "案件が見つかりません",
