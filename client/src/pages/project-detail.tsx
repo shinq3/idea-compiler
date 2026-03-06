@@ -57,10 +57,19 @@ export default function ProjectDetail() {
 
   const { data: project, isLoading } = useQuery<Project>({
     queryKey: ["/api/projects", projectId],
+    refetchInterval: (query) => {
+      const p = query.state.data as Project | undefined;
+      if (!p) return 5000;
+      const hasConfidence = (p.budgetConfidence ?? 0) > 0 || (p.timelineConfidence ?? 0) > 0 || (p.requirementConfidence ?? 0) > 0;
+      return hasConfidence ? false : 5000;
+    },
   });
 
   const { data: latestSummary } = useQuery<Summary | null>({
     queryKey: [`/api/projects/${projectId}/summary/latest`],
+    refetchInterval: (query) => {
+      return query.state.data ? false : 5000;
+    },
   });
 
   const { data: orgs } = useQuery<OrgData[]>({

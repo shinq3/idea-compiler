@@ -37,6 +37,10 @@ export function StructuredItemsPanel({ projectId }: StructuredItemsPanelProps) {
 
   const { data: items, isLoading } = useQuery<StructuredItem[]>({
     queryKey: [`/api/projects/${projectId}/structured-items`],
+    refetchInterval: (query) => {
+      const data = query.state.data as StructuredItem[] | undefined;
+      return (!data || data.length === 0) ? 5000 : false;
+    },
   });
 
   const reprocessMutation = useMutation({

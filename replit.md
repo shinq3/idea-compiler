@@ -45,6 +45,11 @@ A web application that helps nurture business projects from RFP to kickoff. Proj
 ## Data Flow
 Input (text/file) → PDF extraction (if PDF) → AI structured extraction (multilingual) → Summary update (multilingual) → DB save
 
+## Auto-Polling (refetchInterval)
+- Project detail page polls every 5s for project data, summary, and structured items until AI processing completes
+- Polling stops automatically once data is available (confidence > 0, summary exists, items exist)
+- This ensures the UI updates after background AI processing finishes (typically 30-120s)
+
 ## Multilingual Content Format
 - **Structured Items**: `valueJson.title` and `valueJson.description` are `{ ja, en, vi }` objects
 - **Summaries**: `summaryJson` is `{ ja: { overview, ... }, en: { ... }, vi: { ... } }`
