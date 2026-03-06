@@ -276,7 +276,7 @@ export function InputPanel({ projectId }: InputPanelProps) {
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1">
       <input
         ref={fileRef}
         type="file"
