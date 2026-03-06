@@ -277,29 +277,6 @@ export function InputPanel({ projectId }: InputPanelProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-2">
-        <button
-          onClick={() => fileRef.current?.click()}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20 transition-all duration-200"
-          data-testid="button-input-file"
-        >
-          <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
-            <Upload className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-          </div>
-          <span className="text-xs font-medium">{t("input.uploadFile")}</span>
-        </button>
-        <button
-          onClick={() => audioFileRef.current?.click()}
-          disabled={voiceState !== "idle"}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          data-testid="button-upload-audio"
-        >
-          <div className="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
-            <Music className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
-          </div>
-          <span className="text-xs font-medium">{t("input.uploadAudio")}</span>
-        </button>
-      </div>
       <input
         ref={fileRef}
         type="file"
@@ -417,6 +394,31 @@ export function InputPanel({ projectId }: InputPanelProps) {
               {t("input.transcribing")}
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-10 w-10 shrink-0"
+            onClick={() => fileRef.current?.click()}
+            data-testid="button-input-file"
+            title={t("input.uploadFile")}
+          >
+            <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+              <Upload className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            </div>
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-10 w-10 shrink-0"
+            onClick={() => audioFileRef.current?.click()}
+            disabled={voiceState !== "idle"}
+            data-testid="button-upload-audio"
+            title={t("input.uploadAudio")}
+          >
+            <div className="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
+              <Music className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+            </div>
+          </Button>
         </div>
         <Button
           onClick={handleSubmit}
