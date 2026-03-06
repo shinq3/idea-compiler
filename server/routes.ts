@@ -654,7 +654,7 @@ export async function registerRoutes(
     }
   });
 
-  app.patch("/api/projects/:id/inputs/:inputId", requireAuth, requireProjectAccess, requireRole("system_admin", "org_admin", "pm"), async (req, res) => {
+  app.patch("/api/projects/:id/inputs/:inputId", requireAuth, requireProjectAccess, async (req, res) => {
     try {
       const projectId = Number(req.params.id);
       const inputId = Number(req.params.inputId);

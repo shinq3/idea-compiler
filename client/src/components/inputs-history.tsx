@@ -228,9 +228,9 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
                       <Clock className="w-3 h-3" />
                       {new Date(input.createdAt).toLocaleString()}
                     </div>
-                    {canManage && !isEditing && (
+                    {!isEditing && (
                       <div className="flex items-center gap-1">
-                        {input.rawText?.startsWith("[") && (input.type === "rfp_pdf" || input.type === "file") && (
+                        {canManage && input.rawText?.startsWith("[") && (input.type === "rfp_pdf" || input.type === "file") && (
                           <>
                             <input
                               type="file"
@@ -269,15 +269,17 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
                         >
                           <Pencil className="w-3 h-3" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-destructive hover:text-destructive"
-                          onClick={() => setDeleteTarget(input)}
-                          data-testid={`button-delete-input-${input.id}`}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
+                        {canManage && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-destructive hover:text-destructive"
+                            onClick={() => setDeleteTarget(input)}
+                            data-testid={`button-delete-input-${input.id}`}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>
