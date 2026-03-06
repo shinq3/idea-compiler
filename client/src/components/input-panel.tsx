@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
-import { Send, Upload, FileText, X, Loader2, CheckCircle2, AlertCircle, Mic, Square, Music } from "lucide-react";
+import { Send, Upload, FileText, X, Loader2, CheckCircle2, AlertCircle, Mic, Square, Music, Pencil, MessageSquare } from "lucide-react";
 import { getToken } from "@/lib/auth";
 
 function authHeaders(extra?: Record<string, string>): Record<string, string> {
@@ -277,97 +277,113 @@ export function InputPanel({ projectId }: InputPanelProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 mb-2 flex-wrap">
-        <Button
-          variant={inputType === "text" ? "default" : "outline"}
-          size="sm"
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-2">
+        <button
           onClick={() => { setInputType("text"); setFile(null); }}
+          className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-200 ${
+            inputType === "text" && !file
+              ? "border-blue-400 bg-blue-50 dark:bg-blue-950/40 shadow-sm"
+              : "border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20"
+          }`}
           data-testid="button-input-text"
         >
-          {t("input.textMemo")}
-        </Button>
-        <Button
-          variant={inputType === "meeting_note" ? "default" : "outline"}
-          size="sm"
+          <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
+            <Pencil className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          </div>
+          <span className="text-xs font-medium">{t("input.textMemo")}</span>
+        </button>
+        <button
           onClick={() => { setInputType("meeting_note"); setFile(null); }}
+          className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-200 ${
+            inputType === "meeting_note" && !file
+              ? "border-amber-400 bg-amber-50 dark:bg-amber-950/40 shadow-sm"
+              : "border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20"
+          }`}
           data-testid="button-input-meeting"
         >
-          {t("input.meetingNotes")}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
+          <div className="w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+            <MessageSquare className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+          </div>
+          <span className="text-xs font-medium">{t("input.meetingNotes")}</span>
+        </button>
+        <button
           onClick={() => fileRef.current?.click()}
+          className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20 transition-all duration-200"
           data-testid="button-input-file"
         >
-          <Upload className="w-3 h-3 mr-1" />
-          {t("input.uploadFile")}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
+          <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+            <Upload className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <span className="text-xs font-medium">{t("input.uploadFile")}</span>
+        </button>
+        <button
           onClick={() => audioFileRef.current?.click()}
           disabled={voiceState !== "idle"}
+          className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           data-testid="button-upload-audio"
         >
-          <Music className="w-3 h-3 mr-1" />
-          {t("input.uploadAudio")}
-        </Button>
+          <div className="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
+            <Music className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+          </div>
+          <span className="text-xs font-medium">{t("input.uploadAudio")}</span>
+        </button>
         {voiceState === "idle" ? (
-          <Button
-            variant="outline"
-            size="sm"
+          <button
             onClick={startRecording}
+            className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20 transition-all duration-200"
             data-testid="button-voice-record"
           >
-            <Mic className="w-3 h-3 mr-1" />
-            {t("input.voiceRecord")}
-          </Button>
+            <div className="w-9 h-9 rounded-full bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center">
+              <Mic className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+            </div>
+            <span className="text-xs font-medium">{t("input.voiceRecord")}</span>
+          </button>
         ) : voiceState === "recording" ? (
-          <Button
-            variant="destructive"
-            size="sm"
+          <button
             onClick={stopRecording}
-            className="animate-pulse"
+            className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 border-rose-400 bg-rose-50 dark:bg-rose-950/40 shadow-sm animate-pulse transition-all duration-200"
             data-testid="button-voice-stop"
           >
-            <Square className="w-3 h-3 mr-1 fill-current" />
-            {formatDuration(recordingDuration)}
-          </Button>
+            <div className="w-9 h-9 rounded-full bg-rose-200 dark:bg-rose-800 flex items-center justify-center">
+              <Square className="w-4 h-4 text-rose-600 dark:text-rose-400 fill-current" />
+            </div>
+            <span className="text-xs font-medium text-rose-600 dark:text-rose-400">{formatDuration(recordingDuration)}</span>
+          </button>
         ) : (
-          <Button
-            variant="secondary"
-            size="sm"
+          <button
             disabled
+            className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 border-transparent bg-muted/50 opacity-70 cursor-not-allowed transition-all duration-200"
             data-testid="button-voice-transcribing"
           >
-            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-            {t("input.transcribing")}
-          </Button>
+            <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
+              <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
+            </div>
+            <span className="text-xs font-medium">{t("input.transcribing")}</span>
+          </button>
         )}
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".pdf,.txt,.md"
-          className="hidden"
-          onChange={(e) => {
-            setFile(e.target.files?.[0] || null);
-            setText("");
-          }}
-          data-testid="input-file-upload"
-        />
-        <input
-          ref={audioFileRef}
-          type="file"
-          accept=".mp3,.wav,.m4a,.webm,.mp4,.ogg"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) handleAudioFileUpload(f);
-          }}
-          data-testid="input-audio-upload"
-        />
       </div>
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".pdf,.txt,.md"
+        className="hidden"
+        onChange={(e) => {
+          setFile(e.target.files?.[0] || null);
+          setText("");
+        }}
+        data-testid="input-file-upload"
+      />
+      <input
+        ref={audioFileRef}
+        type="file"
+        accept=".mp3,.wav,.m4a,.webm,.mp4,.ogg"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) handleAudioFileUpload(f);
+        }}
+        data-testid="input-audio-upload"
+      />
 
       {voiceState === "recording" && (
         <Card className="p-4 border-destructive bg-destructive/5">
