@@ -277,76 +277,28 @@ export function InputPanel({ projectId }: InputPanelProps) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
-        <button
-          onClick={() => { setInputType("text"); setFile(null); }}
-          className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all duration-200 ${
-            inputType === "text" && !file
-              ? "border-blue-400 bg-blue-50 dark:bg-blue-950/40 shadow-sm"
-              : "border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20"
-          }`}
-          data-testid="button-input-text"
-        >
-          <div className="w-9 h-9 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
-            <Pencil className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-          </div>
-          <span className="text-xs font-medium">{t("input.textMemo")}</span>
-        </button>
+      <div className="flex items-center gap-2 mb-2">
         <button
           onClick={() => fileRef.current?.click()}
-          className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20 transition-all duration-200"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20 transition-all duration-200"
           data-testid="button-input-file"
         >
-          <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
-            <Upload className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+            <Upload className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <span className="text-xs font-medium">{t("input.uploadFile")}</span>
         </button>
         <button
           onClick={() => audioFileRef.current?.click()}
           disabled={voiceState !== "idle"}
-          className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           data-testid="button-upload-audio"
         >
-          <div className="w-9 h-9 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
-            <Music className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+          <div className="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
+            <Music className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
           </div>
           <span className="text-xs font-medium">{t("input.uploadAudio")}</span>
         </button>
-        {voiceState === "idle" ? (
-          <button
-            onClick={startRecording}
-            className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 border-transparent bg-muted/50 hover:bg-muted hover:border-muted-foreground/20 transition-all duration-200"
-            data-testid="button-voice-record"
-          >
-            <div className="w-9 h-9 rounded-full bg-rose-100 dark:bg-rose-900/50 flex items-center justify-center">
-              <Mic className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-            </div>
-            <span className="text-xs font-medium">{t("input.voiceRecord")}</span>
-          </button>
-        ) : voiceState === "recording" ? (
-          <button
-            onClick={stopRecording}
-            className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 border-rose-400 bg-rose-50 dark:bg-rose-950/40 shadow-sm animate-pulse transition-all duration-200"
-            data-testid="button-voice-stop"
-          >
-            <div className="w-9 h-9 rounded-full bg-rose-200 dark:bg-rose-800 flex items-center justify-center">
-              <Square className="w-4 h-4 text-rose-600 dark:text-rose-400 fill-current" />
-            </div>
-            <span className="text-xs font-medium text-rose-600 dark:text-rose-400">{formatDuration(recordingDuration)}</span>
-          </button>
-        ) : (
-          <button
-            disabled
-            className="flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 border-transparent bg-muted/50 opacity-70 cursor-not-allowed transition-all duration-200"
-            data-testid="button-voice-transcribing"
-          >
-            <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center">
-              <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
-            </div>
-            <span className="text-xs font-medium">{t("input.transcribing")}</span>
-          </button>
-        )}
       </div>
       <input
         ref={fileRef}
@@ -372,11 +324,11 @@ export function InputPanel({ projectId }: InputPanelProps) {
       />
 
       {voiceState === "recording" && (
-        <Card className="p-4 border-destructive bg-destructive/5">
+        <Card className="p-4 border-rose-300 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/30">
           <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full bg-destructive animate-pulse" />
-            <span className="text-sm font-medium">{t("input.recording")}</span>
-            <span className="text-sm text-muted-foreground ml-auto font-mono">
+            <div className="w-3 h-3 rounded-full bg-rose-500 animate-pulse" />
+            <span className="text-sm font-medium text-rose-700 dark:text-rose-300">{t("input.recording")}</span>
+            <span className="text-sm text-rose-500 ml-auto font-mono font-semibold">
               {formatDuration(recordingDuration)}
             </span>
           </div>
@@ -397,47 +349,78 @@ export function InputPanel({ projectId }: InputPanelProps) {
         </Card>
       )}
 
-      {voiceState === "idle" && (
-        <>
-          {file ? (
-            <Card className="p-4">
-              <div className="flex items-center gap-3">
-                <FileText className="w-5 h-5 text-primary shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{file.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {(file.size / 1024).toFixed(1)} KB
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setFile(null)}
-                  data-testid="button-remove-uploaded-file"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            </Card>
-          ) : (
-            <Textarea
-              placeholder={
-                inputType === "meeting_note"
-                  ? t("input.meetingPlaceholder")
-                  : t("input.textPlaceholder")
-              }
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              className="min-h-[140px] resize-y"
-              data-testid="textarea-input"
-            />
-          )}
-        </>
+      {file ? (
+        <Card className="p-4">
+          <div className="flex items-center gap-3">
+            <FileText className="w-5 h-5 text-primary shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{file.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {(file.size / 1024).toFixed(1)} KB
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setFile(null)}
+              data-testid="button-remove-uploaded-file"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </Card>
+      ) : (
+        <Textarea
+          placeholder={t("input.textPlaceholder")}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          className="min-h-[140px] resize-y"
+          data-testid="textarea-input"
+        />
       )}
 
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {voiceState === "idle" ? (
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={startRecording}
+              className="border-rose-300 dark:border-rose-700 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-rose-700 dark:hover:text-rose-300 gap-2"
+              data-testid="button-voice-record"
+            >
+              <div className="w-7 h-7 rounded-full bg-rose-500 flex items-center justify-center">
+                <Mic className="w-4 h-4 text-white" />
+              </div>
+              {t("input.voiceRecord")}
+            </Button>
+          ) : voiceState === "recording" ? (
+            <Button
+              variant="destructive"
+              size="lg"
+              onClick={stopRecording}
+              className="animate-pulse gap-2"
+              data-testid="button-voice-stop"
+            >
+              <Square className="w-4 h-4 fill-current" />
+              {formatDuration(recordingDuration)} - {t("input.recordingStop")}
+            </Button>
+          ) : (
+            <Button
+              variant="secondary"
+              size="lg"
+              disabled
+              className="gap-2"
+              data-testid="button-voice-transcribing"
+            >
+              <Loader2 className="w-4 h-4 animate-spin" />
+              {t("input.transcribing")}
+            </Button>
+          )}
+        </div>
         <Button
           onClick={handleSubmit}
+          size="lg"
           disabled={mutation.isPending || voiceState !== "idle" || (!text.trim() && !file)}
           data-testid="button-submit-input"
         >
