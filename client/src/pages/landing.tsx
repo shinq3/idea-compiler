@@ -14,6 +14,7 @@ import {
   Globe, Shield, Users, Square, Music
 } from "lucide-react";
 import type { SummaryContent } from "@shared/schema";
+import heroBgImage from "@assets/Gemini_Generated_Image_6i2h2w6i2h2w6i2h_1772852193328.png";
 
 function getSummaryContent(summaryJson: any, locale: string): SummaryContent | null {
   if (!summaryJson) return null;
@@ -203,7 +204,11 @@ export default function Landing() {
       </header>
 
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 dark:from-primary/10 dark:to-primary/5" />
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${heroBgImage})` }}
+        />
+        <div className="absolute inset-0 bg-background/80 dark:bg-background/85 backdrop-blur-sm" />
         <div className="relative max-w-6xl mx-auto px-6 py-20 md:py-28">
           <div className="text-center max-w-3xl mx-auto">
             <Badge variant="secondary" className="mb-4 text-xs" data-testid="badge-tagline">
