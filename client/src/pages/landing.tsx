@@ -11,7 +11,9 @@ import {
   FolderKanban, Upload, Mic, MicOff, Send, Loader2, ChevronDown,
   Target, AlertTriangle, Lightbulb, DollarSign, Calendar,
   HelpCircle, ArrowRight, ClipboardList, Zap, FileText, BarChart3,
-  Globe, Shield, Users, Square, Music
+  Globe, Shield, Users, Square, Music,
+  MessageSquare, Layers, Cpu, Network, LayoutList, Presentation,
+  Rocket, CheckCircle2
 } from "lucide-react";
 import type { SummaryContent } from "@shared/schema";
 import heroBgImage from "@assets/Gemini_Generated_Image_6i2h2w6i2h2w6i2h_1772852193328.png";
@@ -242,47 +244,88 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="py-16 border-t bg-muted/30">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-2xl font-bold text-center mb-10" data-testid="text-features-title">
-            {t("landing.featuresTitle")}
+      <section className="py-20 border-t bg-muted/20">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16" data-testid="text-story-title">
+            {t("landing.storyTitle")}
           </h2>
-          <div className="grid md:grid-cols-3 gap-6">
-            <FeatureCard
-              icon={FileText}
-              title={t("landing.feature1Title")}
-              description={t("landing.feature1Desc")}
-              testId="card-feature-1"
+
+          <div className="relative">
+            <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-px bg-border md:-translate-x-px" />
+
+            <StoryScene
+              num={1}
+              icon={MessageSquare}
+              color="text-amber-600 bg-amber-100 dark:bg-amber-900/40 dark:text-amber-400"
+              title={t("landing.scene1Title")}
+              desc={t("landing.scene1Desc")}
+              quote={t("landing.scene1Quote")}
+              side="left"
+              testId="scene-1"
             />
-            <FeatureCard
-              icon={BarChart3}
-              title={t("landing.feature2Title")}
-              description={t("landing.feature2Desc")}
-              testId="card-feature-2"
+            <StoryScene
+              num={2}
+              icon={Layers}
+              color="text-orange-600 bg-orange-100 dark:bg-orange-900/40 dark:text-orange-400"
+              title={t("landing.scene2Title")}
+              desc={t("landing.scene2Desc")}
+              side="right"
+              testId="scene-2"
             />
-            <FeatureCard
-              icon={Globe}
-              title={t("landing.feature3Title")}
-              description={t("landing.feature3Desc")}
-              testId="card-feature-3"
+            <StoryScene
+              num={3}
+              icon={Cpu}
+              color="text-emerald-600 bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-400"
+              title={t("landing.scene3Title")}
+              desc={t("landing.scene3Desc")}
+              side="left"
+              testId="scene-3"
             />
-            <FeatureCard
-              icon={Mic}
-              title={t("landing.feature4Title")}
-              description={t("landing.feature4Desc")}
-              testId="card-feature-4"
+            <StoryScene
+              num={4}
+              icon={Network}
+              color="text-blue-600 bg-blue-100 dark:bg-blue-900/40 dark:text-blue-400"
+              title={t("landing.scene4Title")}
+              desc={t("landing.scene4Desc")}
+              side="right"
+              testId="scene-4"
             />
-            <FeatureCard
-              icon={Shield}
-              title={t("landing.feature5Title")}
-              description={t("landing.feature5Desc")}
-              testId="card-feature-5"
+            <StoryScene
+              num={5}
+              icon={LayoutList}
+              color="text-violet-600 bg-violet-100 dark:bg-violet-900/40 dark:text-violet-400"
+              title={t("landing.scene5Title")}
+              desc={t("landing.scene5Desc")}
+              side="left"
+              testId="scene-5"
             />
-            <FeatureCard
-              icon={Users}
-              title={t("landing.feature6Title")}
-              description={t("landing.feature6Desc")}
-              testId="card-feature-6"
+            <StoryScene
+              num={6}
+              icon={Presentation}
+              color="text-cyan-600 bg-cyan-100 dark:bg-cyan-900/40 dark:text-cyan-400"
+              title={t("landing.scene6Title")}
+              desc={t("landing.scene6Desc")}
+              side="right"
+              testId="scene-6"
+            />
+            <StoryScene
+              num={7}
+              icon={Rocket}
+              color="text-rose-600 bg-rose-100 dark:bg-rose-900/40 dark:text-rose-400"
+              title={t("landing.scene7Title")}
+              desc={t("landing.scene7Desc")}
+              side="left"
+              testId="scene-7"
+            />
+            <StoryScene
+              num={8}
+              icon={CheckCircle2}
+              color="text-emerald-700 bg-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300"
+              title={t("landing.scene8Title")}
+              desc={t("landing.scene8Desc")}
+              side="right"
+              testId="scene-8"
+              isLast
             />
           </div>
         </div>
@@ -514,17 +557,47 @@ export default function Landing() {
   );
 }
 
-function FeatureCard({ icon: Icon, title, description, testId }: {
-  icon: any; title: string; description: string; testId: string;
+function StoryScene({ num, icon: Icon, color, title, desc, quote, side, testId, isLast }: {
+  num: number; icon: any; color: string; title: string; desc: string;
+  quote?: string; side: "left" | "right"; testId: string; isLast?: boolean;
 }) {
+  const isLeft = side === "left";
   return (
-    <Card className="p-6" data-testid={testId}>
-      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-        <Icon className="w-5 h-5 text-primary" />
+    <div className={`relative flex items-start gap-4 md:gap-0 ${isLast ? "pb-0" : "pb-12"}`} data-testid={testId}>
+      <div className="absolute left-6 md:left-1/2 -translate-x-1/2 z-10">
+        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${color} shadow-md border-4 border-background`}>
+          <Icon className="w-5 h-5" />
+        </div>
       </div>
-      <h3 className="font-semibold mb-1">{title}</h3>
-      <p className="text-sm text-muted-foreground">{description}</p>
-    </Card>
+
+      <div className={`hidden md:block w-1/2 ${isLeft ? "pr-12 text-right" : "pl-12 ml-auto text-left"}`}>
+        <div className={`inline-block max-w-sm ${isLeft ? "text-right" : "text-left"}`}>
+          <Badge variant="outline" className="mb-2 text-xs font-mono">
+            Scene {num}
+          </Badge>
+          <h3 className="text-lg font-bold mb-2">{title}</h3>
+          {quote && (
+            <p className="text-sm italic text-muted-foreground mb-2 border-l-2 border-primary/30 pl-3 text-left">
+              "{quote}"
+            </p>
+          )}
+          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{desc}</p>
+        </div>
+      </div>
+
+      <div className="md:hidden pl-16 flex-1">
+        <Badge variant="outline" className="mb-2 text-xs font-mono">
+          Scene {num}
+        </Badge>
+        <h3 className="text-lg font-bold mb-2">{title}</h3>
+        {quote && (
+          <p className="text-sm italic text-muted-foreground mb-2 border-l-2 border-primary/30 pl-3">
+            "{quote}"
+          </p>
+        )}
+        <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{desc}</p>
+      </div>
+    </div>
   );
 }
 
