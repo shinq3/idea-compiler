@@ -1,6 +1,6 @@
 {
-  "name": "CaseNurture - Project Nurturing OS",
-  "short_name": "CaseNurture",
+  "name": "IdeaCompiler",
+  "short_name": "IdeaCompiler",
   "description": "RFPからキックオフまで、AIでプロジェクトを育てるOS",
   "start_url": "/",
   "display": "standalone",

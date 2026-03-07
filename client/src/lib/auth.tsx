@@ -25,7 +25,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const TOKEN_KEY = "casenurture_token";
+const TOKEN_KEY = "ideacompiler_token";
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);

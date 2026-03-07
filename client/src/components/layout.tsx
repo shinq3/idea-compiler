@@ -27,7 +27,7 @@ export function Layout({ children, title, actions }: LayoutProps) {
                 <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary">
                   <FolderKanban className="w-4 h-4 text-primary-foreground" />
                 </div>
-                <span className="font-semibold text-sm tracking-tight">CaseNurture</span>
+                <span className="font-semibold text-sm tracking-tight">IdeaCompiler</span>
               </div>
             </Link>
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = "casenurture-v1";
+const CACHE_NAME = "ideacompiler-v1";
 const PRECACHE_URLS = ["/", "/manifest.json"];
 
 self.addEventListener("install", (event) => {

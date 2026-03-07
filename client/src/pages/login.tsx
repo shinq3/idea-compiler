@@ -44,7 +44,7 @@ export default function Login() {
             <div className="flex items-center justify-center w-10 h-10 rounded-md bg-primary">
               <FolderKanban className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-semibold tracking-tight">CaseNurture</span>
+            <span className="text-xl font-semibold tracking-tight">IdeaCompiler</span>
           </div>
           <CardTitle className="text-lg" data-testid="text-login-title">{t("auth.loginTitle")}</CardTitle>
         </CardHeader>

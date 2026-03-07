@@ -92,7 +92,7 @@ async function seedDefaultAdmin() {
   const passwordHash = await hashPassword("admin123");
   await db.insert(users).values({
     username: "admin",
-    email: "admin@casenurture.local",
+    email: "admin@ideacompiler.local",
     passwordHash,
     displayName: "System Admin",
     role: "system_admin",

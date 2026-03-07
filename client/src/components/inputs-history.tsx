@@ -104,7 +104,7 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const token = localStorage.getItem("casenurture_token");
+      const token = localStorage.getItem("ideacompiler_token");
       const res = await fetch(`/api/projects/${projectId}/inputs/${inputId}/reupload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },

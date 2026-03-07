@@ -1,4 +1,4 @@
-# CaseNurture - Project Nurturing OS
+# IdeaCompiler - Project Nurturing OS
 
 ## Overview
 A web application that helps nurture business projects from RFP to kickoff. Projects grow through meetings and inputs, with AI-powered analysis, structured data extraction, and automatic document generation. Features JWT-based authentication, organization management, and role-based access control (RBAC).
@@ -12,7 +12,7 @@ A web application that helps nurture business projects from RFP to kickoff. Proj
 - **File Processing**: pdf-parse for PDF text extraction, multer for file uploads
 
 ## Authentication & RBAC
-- **JWT Auth**: Token stored in localStorage as `casenurture_token`
+- **JWT Auth**: Token stored in localStorage as `ideacompiler_token`
 - **Default credentials**: username=`admin`, password=`admin123`, role=`system_admin`
 - **Roles**:
   - `system_admin`: All projects, all users, all orgs
