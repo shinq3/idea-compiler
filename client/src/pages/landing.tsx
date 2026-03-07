@@ -17,6 +17,14 @@ import {
 } from "lucide-react";
 import type { SummaryContent } from "@shared/schema";
 import heroBgImage from "@assets/Gemini_Generated_Image_6i2h2w6i2h2w6i2h_1772852193328.png";
+import scene1Img from "@assets/scene1_meeting.png";
+import scene2Img from "@assets/scene2_scattered.png";
+import scene3Img from "@assets/scene3_input.png";
+import scene4Img from "@assets/scene4_compile.png";
+import scene5Img from "@assets/scene5_spec.png";
+import scene6Img from "@assets/scene6_kickoff.png";
+import scene7Img from "@assets/scene7_launch.png";
+import scene8Img from "@assets/scene8_transform.png";
 
 function getSummaryContent(summaryJson: any, locale: string): SummaryContent | null {
   if (!summaryJson) return null;
@@ -260,6 +268,7 @@ export default function Landing() {
               title={t("landing.scene1Title")}
               desc={t("landing.scene1Desc")}
               quote={t("landing.scene1Quote")}
+              image={scene1Img}
               side="left"
               testId="scene-1"
             />
@@ -269,6 +278,7 @@ export default function Landing() {
               color="text-orange-600 bg-orange-100 dark:bg-orange-900/40 dark:text-orange-400"
               title={t("landing.scene2Title")}
               desc={t("landing.scene2Desc")}
+              image={scene2Img}
               side="right"
               testId="scene-2"
             />
@@ -278,6 +288,7 @@ export default function Landing() {
               color="text-emerald-600 bg-emerald-100 dark:bg-emerald-900/40 dark:text-emerald-400"
               title={t("landing.scene3Title")}
               desc={t("landing.scene3Desc")}
+              image={scene3Img}
               side="left"
               testId="scene-3"
             />
@@ -287,6 +298,7 @@ export default function Landing() {
               color="text-blue-600 bg-blue-100 dark:bg-blue-900/40 dark:text-blue-400"
               title={t("landing.scene4Title")}
               desc={t("landing.scene4Desc")}
+              image={scene4Img}
               side="right"
               testId="scene-4"
             />
@@ -296,6 +308,7 @@ export default function Landing() {
               color="text-violet-600 bg-violet-100 dark:bg-violet-900/40 dark:text-violet-400"
               title={t("landing.scene5Title")}
               desc={t("landing.scene5Desc")}
+              image={scene5Img}
               side="left"
               testId="scene-5"
             />
@@ -305,6 +318,7 @@ export default function Landing() {
               color="text-cyan-600 bg-cyan-100 dark:bg-cyan-900/40 dark:text-cyan-400"
               title={t("landing.scene6Title")}
               desc={t("landing.scene6Desc")}
+              image={scene6Img}
               side="right"
               testId="scene-6"
             />
@@ -314,6 +328,7 @@ export default function Landing() {
               color="text-rose-600 bg-rose-100 dark:bg-rose-900/40 dark:text-rose-400"
               title={t("landing.scene7Title")}
               desc={t("landing.scene7Desc")}
+              image={scene7Img}
               side="left"
               testId="scene-7"
             />
@@ -323,6 +338,7 @@ export default function Landing() {
               color="text-emerald-700 bg-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-300"
               title={t("landing.scene8Title")}
               desc={t("landing.scene8Desc")}
+              image={scene8Img}
               side="right"
               testId="scene-8"
               isLast
@@ -557,44 +573,62 @@ export default function Landing() {
   );
 }
 
-function StoryScene({ num, icon: Icon, color, title, desc, quote, side, testId, isLast }: {
+function StoryScene({ num, icon: Icon, color, title, desc, quote, image, side, testId, isLast }: {
   num: number; icon: any; color: string; title: string; desc: string;
-  quote?: string; side: "left" | "right"; testId: string; isLast?: boolean;
+  quote?: string; image?: string; side: "left" | "right"; testId: string; isLast?: boolean;
 }) {
   const isLeft = side === "left";
   return (
-    <div className={`relative flex items-start gap-4 md:gap-0 ${isLast ? "pb-0" : "pb-12"}`} data-testid={testId}>
+    <div className={`relative ${isLast ? "pb-0" : "pb-16"}`} data-testid={testId}>
       <div className="absolute left-6 md:left-1/2 -translate-x-1/2 z-10">
         <div className={`w-12 h-12 rounded-full flex items-center justify-center ${color} shadow-md border-4 border-background`}>
           <Icon className="w-5 h-5" />
         </div>
       </div>
 
-      <div className={`hidden md:block w-1/2 ${isLeft ? "pr-12 text-right" : "pl-12 ml-auto text-left"}`}>
-        <div className={`inline-block max-w-sm ${isLeft ? "text-right" : "text-left"}`}>
-          <Badge variant="outline" className="mb-2 text-xs font-mono">
-            Scene {num}
-          </Badge>
-          <h3 className="text-lg font-bold mb-2">{title}</h3>
-          {quote && (
-            <p className="text-sm italic text-muted-foreground mb-2 border-l-2 border-primary/30 pl-3 text-left">
-              "{quote}"
-            </p>
-          )}
-          <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{desc}</p>
-        </div>
+      <div className="hidden md:grid md:grid-cols-2 md:gap-8">
+        {isLeft ? (
+          <>
+            <div className="pr-12 flex flex-col justify-center items-end">
+              <div className="max-w-sm text-right">
+                <Badge variant="outline" className="mb-2 text-xs font-mono">Scene {num}</Badge>
+                <h3 className="text-lg font-bold mb-2">{title}</h3>
+                {quote && (
+                  <p className="text-sm italic text-muted-foreground mb-2 border-r-2 border-primary/30 pr-3">"{quote}"</p>
+                )}
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{desc}</p>
+              </div>
+            </div>
+            <div className="pl-12">
+              {image && <img src={image} alt={title} className="rounded-xl shadow-lg w-full object-cover aspect-video" />}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="pr-12 flex justify-end">
+              {image && <img src={image} alt={title} className="rounded-xl shadow-lg w-full object-cover aspect-video" />}
+            </div>
+            <div className="pl-12 flex flex-col justify-center">
+              <div className="max-w-sm">
+                <Badge variant="outline" className="mb-2 text-xs font-mono">Scene {num}</Badge>
+                <h3 className="text-lg font-bold mb-2">{title}</h3>
+                {quote && (
+                  <p className="text-sm italic text-muted-foreground mb-2 border-l-2 border-primary/30 pl-3">"{quote}"</p>
+                )}
+                <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{desc}</p>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="md:hidden pl-16 flex-1">
-        <Badge variant="outline" className="mb-2 text-xs font-mono">
-          Scene {num}
-        </Badge>
+        <Badge variant="outline" className="mb-2 text-xs font-mono">Scene {num}</Badge>
         <h3 className="text-lg font-bold mb-2">{title}</h3>
         {quote && (
-          <p className="text-sm italic text-muted-foreground mb-2 border-l-2 border-primary/30 pl-3">
-            "{quote}"
-          </p>
+          <p className="text-sm italic text-muted-foreground mb-2 border-l-2 border-primary/30 pl-3">"{quote}"</p>
         )}
+        {image && <img src={image} alt={title} className="rounded-xl shadow-md w-full object-cover aspect-video mb-3" />}
         <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{desc}</p>
       </div>
     </div>
