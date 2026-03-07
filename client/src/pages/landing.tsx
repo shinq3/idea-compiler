@@ -182,14 +182,14 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="max-w-6xl mx-auto flex items-center justify-between px-6 h-14">
-          <div className="flex items-center gap-2">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-2 px-4 sm:px-6 h-14 overflow-hidden">
+          <div className="flex items-center gap-2 shrink-0">
             <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary">
               <FolderKanban className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-semibold text-sm tracking-tight">IdeaCompiler</span>
+            <span className="font-semibold text-sm tracking-tight hidden sm:inline">IdeaCompiler</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
             <LanguageSwitcher />
             {user ? (
               <Button
