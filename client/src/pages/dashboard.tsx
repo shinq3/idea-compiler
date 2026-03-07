@@ -26,10 +26,19 @@ const statusColors: Record<string, string> = {
   lost: "destructive",
 };
 
+function useSessionState(key: string, defaultValue: string) {
+  const [value, setValue] = useState(() => sessionStorage.getItem(key) || defaultValue);
+  const set = (v: string) => {
+    setValue(v);
+    sessionStorage.setItem(key, v);
+  };
+  return [value, set] as const;
+}
+
 export default function Dashboard() {
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [orgFilter, setOrgFilter] = useState("all");
-  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useSessionState("dash_status", "all");
+  const [orgFilter, setOrgFilter] = useSessionState("dash_org", "all");
+  const [search, setSearch] = useSessionState("dash_search", "");
   const [, navigate] = useLocation();
   const { t, locale } = useI18n();
   const { isAdmin } = useAuth();
