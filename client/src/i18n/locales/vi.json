@@ -315,6 +315,7 @@
     "scene8Desc": "Quay lai phong hop ban dau. Nhung bay gio dac ta, nhiem vu va lich trinh da san sang.\nSong am thanh da chuyen thanh ban ve du an.",
     "demoTitle": "Trai nghiem tom tat AI",
     "demoDescription": "Dan tai lieu cuoc hop, bien ban hoac van ban RFP, hoac tai len tep am thanh.",
+    "demoWarning": "* Vui long khong nhap thong tin bao mat",
     "inputPlaceholder": "Dan ghi chu cuoc hop, bien ban hoac noi dung RFP tai day...\n\nVi du:\n- Khach hang: Cong ty ABC\n- Ngan sach: 50K-80K USD\n- Han chot: Thang 9/2026\n- Yeu cau: Dang nhap OAuth2, thiet ke dap ung...",
     "uploadFile": "Tap tin",
     "uploadAudio": "Am thanh",

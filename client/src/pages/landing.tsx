@@ -356,6 +356,9 @@ export default function Landing() {
             <p className="text-muted-foreground" data-testid="text-demo-description">
               {t("landing.demoDescription")}
             </p>
+            <p className="text-sm font-semibold text-red-600 dark:text-red-400" data-testid="text-demo-warning">
+              {t("landing.demoWarning")}
+            </p>
           </div>
 
           <div className="space-y-1">

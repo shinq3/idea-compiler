@@ -315,6 +315,7 @@
     "scene8Desc": "Back to the original meeting room. But now specs, tasks, and schedules are in order.\nThe audio waveform has transformed into a project blueprint.",
     "demoTitle": "Experience AI Summary",
     "demoDescription": "Paste meeting materials, minutes, or RFP text, or upload an audio file.",
+    "demoWarning": "* Please do not enter any confidential information",
     "inputPlaceholder": "Paste meeting notes, minutes, or RFP content here...\n\nExample:\n- Customer: ABC Corporation\n- Budget: $50K-$80K\n- Deadline: September 2026\n- Requirements: OAuth2 login, responsive design...",
     "uploadFile": "File",
     "uploadAudio": "Audio",
