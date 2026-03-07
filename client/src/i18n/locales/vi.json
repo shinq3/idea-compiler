@@ -202,6 +202,7 @@
   },
   "summary": {
     "title": "Tom tat du an",
+    "clickToOpen": "Nhan de mo",
     "noSummary": "Chua co tom tat",
     "noSummaryDescription": "Them nhap lieu (van ban, ghi chu cuoc hop hoac PDF RFP) de tu dong tao tom tat du an.",
     "overview": "Tong quan",

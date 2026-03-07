@@ -202,6 +202,7 @@
   },
   "summary": {
     "title": "Project Summary",
+    "clickToOpen": "Tap to open",
     "noSummary": "No summary yet",
     "noSummaryDescription": "Add inputs (text, meeting notes, or RFP PDFs) to automatically generate a project summary.",
     "overview": "Overview",

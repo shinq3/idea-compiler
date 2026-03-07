@@ -202,6 +202,7 @@
   },
   "summary": {
     "title": "案件サマリー",
+    "clickToOpen": "タップして開く",
     "noSummary": "サマリーがまだありません",
     "noSummaryDescription": "入力（テキスト、会議メモ、RFP PDF）を追加すると、自動的にサマリーが生成されます。",
     "overview": "概要",

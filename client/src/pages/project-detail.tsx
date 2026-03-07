@@ -332,17 +332,24 @@ export default function ProjectDetail() {
         </div>
 
         <Collapsible open={summaryOpen} onOpenChange={setSummaryOpen}>
-          <Card>
+          <Card className={`transition-all duration-200 ${!summaryOpen ? "border-primary/30 bg-primary/5 dark:bg-primary/10 hover:border-primary/50" : ""}`}>
             <CollapsibleTrigger asChild>
               <button
                 className="flex items-center justify-between w-full p-5 text-left hover:bg-muted/50 transition-colors rounded-t-lg"
                 data-testid="button-toggle-summary"
               >
-                <h3 className="font-semibold text-sm">{t("summary.title")}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-sm">{t("summary.title")}</h3>
+                  {!summaryOpen && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/40 text-primary animate-pulse">
+                      {t("summary.clickToOpen")}
+                    </Badge>
+                  )}
+                </div>
                 {summaryOpen ? (
                   <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
                 ) : (
-                  <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <ChevronDown className="w-4 h-4 text-primary shrink-0 animate-bounce" />
                 )}
               </button>
             </CollapsibleTrigger>
