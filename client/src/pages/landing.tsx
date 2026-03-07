@@ -208,16 +208,16 @@ export default function Landing() {
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroBgImage})` }}
         />
-        <div className="absolute inset-0 bg-background/50 dark:bg-background/60" />
+        <div className="absolute inset-0 bg-background/40 dark:bg-background/55" />
         <div className="relative max-w-6xl mx-auto px-6 py-20 md:py-28">
           <div className="text-center max-w-3xl mx-auto">
             <Badge variant="secondary" className="mb-4 text-xs" data-testid="badge-tagline">
               {t("landing.tagline")}
             </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4" data-testid="text-hero-title">
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 text-white drop-shadow-lg [text-shadow:_0_2px_8px_rgba(0,0,0,0.5)]" data-testid="text-hero-title">
               {t("landing.heroTitle")}
             </h1>
-            <p className="text-lg text-muted-foreground mb-8 leading-relaxed" data-testid="text-hero-description">
+            <p className="text-lg mb-8 leading-relaxed text-white/90 drop-shadow-md [text-shadow:_0_1px_4px_rgba(0,0,0,0.5)]" data-testid="text-hero-description">
               {t("landing.heroDescription")}
             </p>
             <div className="flex items-center justify-center gap-3">
