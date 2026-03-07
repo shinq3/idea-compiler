@@ -87,6 +87,8 @@
     "noMatchingProjects": "一致する案件がありません",
     "noProjectsDescription": "最初の案件を作成しましょう。RFP PDFのアップロード、またはタイトルだけで作成できます。",
     "noMatchingDescription": "検索条件やフィルターを調整してみてください。",
+    "orgFilter": "組織フィルター",
+    "allOrgs": "すべての組織",
     "table": {
       "project": "案件名",
       "customer": "顧客",

@@ -87,6 +87,8 @@
     "noMatchingProjects": "Khong tim thay du an phu hop",
     "noProjectsDescription": "Tao du an dau tien cua ban. Ban co the tai len PDF RFP hoac chi can bat dau voi tieu de.",
     "noMatchingDescription": "Thu dieu chinh tim kiem hoac bo loc.",
+    "orgFilter": "To chuc",
+    "allOrgs": "Tat ca to chuc",
     "table": {
       "project": "Du an",
       "customer": "Khach hang",

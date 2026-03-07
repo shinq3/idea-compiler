@@ -87,6 +87,8 @@
     "noMatchingProjects": "No matching projects",
     "noProjectsDescription": "Create your first project to get started. You can upload an RFP PDF or just start with a title.",
     "noMatchingDescription": "Try adjusting your search or filters.",
+    "orgFilter": "Organization",
+    "allOrgs": "All Organizations",
     "table": {
       "project": "Project",
       "customer": "Customer",

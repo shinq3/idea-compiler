@@ -13,9 +13,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { FolderKanban, MessageSquare, Search, ArrowUpRight } from "lucide-react";
+import { FolderKanban, MessageSquare, Search, ArrowUpRight, Building2 } from "lucide-react";
 import { useState } from "react";
-import { pickLang, type Project } from "@shared/schema";
+import { pickLang, type Project, type Organization } from "@shared/schema";
+import { useAuth } from "@/lib/auth";
 
 const statusColors: Record<string, string> = {
   discovery: "secondary",
@@ -27,16 +28,24 @@ const statusColors: Record<string, string> = {
 
 export default function Dashboard() {
   const [statusFilter, setStatusFilter] = useState("all");
+  const [orgFilter, setOrgFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [, navigate] = useLocation();
   const { t, locale } = useI18n();
+  const { isAdmin } = useAuth();
 
   const { data: projects, isLoading } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
   });
 
+  const { data: organizations } = useQuery<Organization[]>({
+    queryKey: ["/api/organizations"],
+    enabled: isAdmin,
+  });
+
   const filtered = (projects || []).filter((p) => {
     if (statusFilter !== "all" && p.status !== statusFilter) return false;
+    if (orgFilter !== "all" && p.organizationId !== Number(orgFilter)) return false;
     if (search) {
       const s = search.toLowerCase();
       const displayTitle = pickLang(p.titleJson || p.title, locale) as string;
@@ -80,6 +89,20 @@ export default function Dashboard() {
               <SelectItem value="lost">{t("status.lost")}</SelectItem>
             </SelectContent>
           </Select>
+          {isAdmin && organizations && (
+            <Select value={orgFilter} onValueChange={setOrgFilter}>
+              <SelectTrigger className="w-[200px]" data-testid="select-org-filter">
+                <Building2 className="w-4 h-4 mr-1 text-muted-foreground shrink-0" />
+                <SelectValue placeholder={t("dashboard.orgFilter")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("dashboard.allOrgs")}</SelectItem>
+                {organizations.map((org) => (
+                  <SelectItem key={org.id} value={String(org.id)}>{org.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         {isLoading ? (
