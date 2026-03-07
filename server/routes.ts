@@ -114,6 +114,30 @@ export async function registerRoutes(
 
   // ===== DEMO / LANDING PAGE API (public, no auth) =====
 
+  async function getOrCreateDemoOrg(): Promise<number> {
+    let org = await storage.getOrganizationBySlug("demo-lp");
+    if (!org) {
+      org = await storage.createOrganization({ name: "LP Demo", slug: "demo-lp" });
+    }
+    return org.id;
+  }
+
+  async function getOrCreateDemoUser(orgId: number): Promise<number> {
+    let user = await storage.getUserByUsername("demo_visitor");
+    if (!user) {
+      const hash = await hashPassword("demo_no_login");
+      user = await storage.createUser({
+        username: "demo_visitor",
+        email: "demo@ideacompiler.local",
+        passwordHash: hash,
+        displayName: "LP Demo Visitor",
+        role: "member",
+        organizationId: orgId,
+      });
+    }
+    return user.id;
+  }
+
   app.post("/api/demo/analyze", async (req, res) => {
     try {
       const { text } = req.body;
@@ -159,6 +183,47 @@ export async function registerRoutes(
           }
         }
       }
+
+      try {
+        const demoOrgId = await getOrCreateDemoOrg();
+        const demoUserId = await getOrCreateDemoUser(demoOrgId);
+        const ts = new Date().toISOString().replace(/[T:]/g, "-").slice(0, 19);
+        const project = await storage.createProject({
+          title: `LP Demo ${ts}`,
+          customerName: "LP Visitor",
+          owner: "demo_visitor",
+          organizationId: demoOrgId,
+          status: "discovery",
+          budgetMin,
+          budgetMax,
+          releaseDateTarget,
+        });
+        const input = await storage.createInput({
+          projectId: project.id,
+          type: "text",
+          source: "lp_demo",
+          rawText: truncated,
+        });
+        for (const item of structured.items) {
+          await storage.createStructuredItem({
+            projectId: project.id,
+            inputId: input.id,
+            category: item.category,
+            valueJson: item.value,
+            confidence: item.confidence ?? 0.5,
+          });
+        }
+        const existingSummaries = await storage.getSummaries(project.id);
+        await storage.createSummary({
+          projectId: project.id,
+          version: existingSummaries.length + 1,
+          summaryJson,
+        });
+        console.log(`[demo] Saved LP demo as project #${project.id} (org: demo-lp)`);
+      } catch (saveErr: any) {
+        console.error("[demo] Failed to save demo log:", saveErr.message);
+      }
+
       res.json({
         summary: summaryJson,
         structuredItems: structured.items.slice(0, 20),
