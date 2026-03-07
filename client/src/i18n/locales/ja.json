@@ -301,6 +301,7 @@
     "uploadAudio": "音声",
     "startRecord": "録音",
     "stopRecord": "停止",
+    "recording": "録音中...",
     "transcribing": "文字起こし中...",
     "analyze": "AI分析する",
     "analyzing": "分析中...",

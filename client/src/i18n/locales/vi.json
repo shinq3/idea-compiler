@@ -301,6 +301,7 @@
     "uploadAudio": "Am thanh",
     "startRecord": "Ghi am",
     "stopRecord": "Dung",
+    "recording": "Dang ghi am...",
     "transcribing": "Dang phien am...",
     "analyze": "Phan tich voi AI",
     "analyzing": "Dang phan tich...",

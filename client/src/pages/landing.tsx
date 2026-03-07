@@ -11,7 +11,7 @@ import {
   FolderKanban, Upload, Mic, MicOff, Send, Loader2, ChevronDown,
   Target, AlertTriangle, Lightbulb, DollarSign, Calendar,
   HelpCircle, ArrowRight, ClipboardList, Zap, FileText, BarChart3,
-  Globe, Shield, Users
+  Globe, Shield, Users, Square, Music
 } from "lucide-react";
 import type { SummaryContent } from "@shared/schema";
 
@@ -31,11 +31,20 @@ export default function Landing() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState("");
   const [recording, setRecording] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [transcribing, setTranscribing] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const durationRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
   const demoRef = useRef<HTMLDivElement>(null);
+
+  const formatDuration = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, "0")}`;
+  };
 
   const handleAnalyze = async () => {
     if (!text.trim() || text.trim().length < 10) return;
@@ -96,23 +105,44 @@ export default function Landing() {
 
   const toggleRecording = async () => {
     if (recording) {
-      mediaRecorderRef.current?.stop();
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
       setRecording(false);
       return;
     }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
+      streamRef.current = stream;
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : MediaRecorder.isTypeSupported("audio/webm")
+          ? "audio/webm"
+          : "audio/mp4";
+      const recorder = new MediaRecorder(stream, { mimeType });
+      mediaRecorderRef.current = recorder;
       chunksRef.current = [];
-      mediaRecorder.ondataavailable = (e) => chunksRef.current.push(e.data);
-      mediaRecorder.onstop = async () => {
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+      recorder.onstop = async () => {
+        if (durationRef.current) {
+          clearInterval(durationRef.current);
+          durationRef.current = null;
+        }
         stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        streamRef.current = null;
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        chunksRef.current = [];
+        if (blob.size < 1000) {
+          setRecordingSeconds(0);
+          return;
+        }
         setTranscribing(true);
         try {
+          const ext = mimeType.includes("webm") ? ".webm" : ".mp4";
           const formData = new FormData();
-          formData.append("audio", blob, "recording.webm");
+          formData.append("audio", blob, `recording${ext}`);
           const res = await fetch("/api/demo/transcribe", { method: "POST", body: formData });
           if (!res.ok) throw new Error("Transcription failed");
           const data = await res.json();
@@ -121,10 +151,15 @@ export default function Landing() {
           setError(err.message);
         } finally {
           setTranscribing(false);
+          setRecordingSeconds(0);
         }
       };
-      mediaRecorder.start();
+      recorder.start(1000);
       setRecording(true);
+      setRecordingSeconds(0);
+      durationRef.current = setInterval(() => {
+        setRecordingSeconds((d) => d + 1);
+      }, 1000);
     } catch {
       setError("Microphone access denied");
     }
@@ -259,79 +294,119 @@ export default function Landing() {
             </p>
           </div>
 
-          <Card className="p-6">
+          <div className="space-y-1">
+            <input
+              type="file"
+              accept=".txt,.md,.pdf"
+              onChange={handleFileUpload}
+              className="hidden"
+              id="demo-file-upload"
+            />
+            <input
+              type="file"
+              accept=".webm,.mp4,.m4a,.wav,.mp3,.ogg"
+              onChange={handleAudioUpload}
+              className="hidden"
+              id="demo-audio-upload"
+            />
+
+            {recording && (
+              <Card className="p-4 border-rose-300 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/30">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 rounded-full bg-rose-500 animate-pulse" />
+                  <span className="text-sm font-medium text-rose-700 dark:text-rose-300">{t("landing.recording")}</span>
+                  <span className="text-sm text-rose-500 ml-auto font-mono font-semibold">
+                    {formatDuration(recordingSeconds)}
+                  </span>
+                </div>
+              </Card>
+            )}
+
+            {transcribing && (
+              <Card className="p-4">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                  <span className="text-sm">{t("landing.transcribing")}</span>
+                </div>
+              </Card>
+            )}
+
             <Textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder={t("landing.inputPlaceholder")}
-              className="min-h-[200px] max-h-[400px] resize-y mb-4"
+              className="min-h-[25vh] max-h-[40vh] resize-y"
               data-testid="textarea-demo-input"
             />
-            <div className="flex items-center justify-between flex-wrap gap-2">
+
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <input
-                  type="file"
-                  accept=".txt,.md,.pdf"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  id="demo-file-upload"
-                />
+                {!recording ? (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={toggleRecording}
+                    disabled={transcribing}
+                    className="border-rose-300 dark:border-rose-700 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:text-rose-700 dark:hover:text-rose-300 gap-2"
+                    data-testid="button-demo-record"
+                  >
+                    <div className="w-7 h-7 rounded-full bg-rose-500 flex items-center justify-center">
+                      <Mic className="w-4 h-4 text-white" />
+                    </div>
+                    {t("landing.startRecord")}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="destructive"
+                    size="lg"
+                    onClick={toggleRecording}
+                    className="animate-pulse gap-2"
+                    data-testid="button-demo-stop"
+                  >
+                    <Square className="w-4 h-4 fill-current" />
+                    {formatDuration(recordingSeconds)} - {t("landing.stopRecord")}
+                  </Button>
+                )}
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="lg"
+                  className="gap-2"
                   onClick={() => document.getElementById("demo-file-upload")?.click()}
                   data-testid="button-demo-file"
                 >
-                  <Upload className="w-4 h-4 mr-1" />
+                  <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+                    <Upload className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  </div>
                   {t("landing.uploadFile")}
                 </Button>
-                <input
-                  type="file"
-                  accept=".webm,.mp4,.m4a,.wav,.mp3,.ogg"
-                  onChange={handleAudioUpload}
-                  className="hidden"
-                  id="demo-audio-upload"
-                />
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="lg"
+                  className="gap-2"
                   onClick={() => document.getElementById("demo-audio-upload")?.click()}
                   disabled={transcribing}
                   data-testid="button-demo-audio"
                 >
-                  <Upload className="w-4 h-4 mr-1" />
+                  <div className="w-7 h-7 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
+                    <Music className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                  </div>
                   {t("landing.uploadAudio")}
                 </Button>
-                <Button
-                  variant={recording ? "destructive" : "outline"}
-                  size="sm"
-                  onClick={toggleRecording}
-                  disabled={transcribing}
-                  data-testid="button-demo-record"
-                >
-                  {recording ? <MicOff className="w-4 h-4 mr-1" /> : <Mic className="w-4 h-4 mr-1" />}
-                  {recording ? t("landing.stopRecord") : t("landing.startRecord")}
-                </Button>
-                {transcribing && (
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    {t("landing.transcribing")}
-                  </span>
-                )}
               </div>
               <Button
                 onClick={handleAnalyze}
-                disabled={analyzing || text.trim().length < 10}
+                size="lg"
+                disabled={analyzing || transcribing || text.trim().length < 10}
                 data-testid="button-demo-analyze"
               >
                 {analyzing ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                     {t("landing.analyzing")}
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4 mr-2" />
+                    <Send className="w-4 h-4 mr-1" />
                     {t("landing.analyze")}
                   </>
                 )}
@@ -340,7 +415,7 @@ export default function Landing() {
             {error && (
               <p className="text-sm text-destructive mt-3" data-testid="text-demo-error">{error}</p>
             )}
-          </Card>
+          </div>
 
           {analyzing && (
             <div className="flex flex-col items-center justify-center py-16">

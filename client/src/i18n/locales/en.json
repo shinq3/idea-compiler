@@ -301,6 +301,7 @@
     "uploadAudio": "Audio",
     "startRecord": "Record",
     "stopRecord": "Stop",
+    "recording": "Recording...",
     "transcribing": "Transcribing...",
     "analyze": "Analyze with AI",
     "analyzing": "Analyzing...",
