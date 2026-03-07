@@ -23,6 +23,7 @@
   },
   "nav": {
     "backToDashboard": "ダッシュボードに戻る",
+    "backToTop": "トップへ戻る",
     "dashboard": "ダッシュボード",
     "users": "ユーザー管理",
     "organizations": "組織管理"

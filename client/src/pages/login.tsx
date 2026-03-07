@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { FolderKanban, Loader2 } from "lucide-react";
+import { FolderKanban, Loader2, ArrowLeft } from "lucide-react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 
 export default function Login() {
@@ -35,6 +35,12 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="absolute top-4 left-4">
+        <Button variant="ghost" size="sm" onClick={() => setLocation("/")} data-testid="button-back-to-top">
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          {t("nav.backToTop")}
+        </Button>
+      </div>
       <div className="absolute top-4 right-4">
         <LanguageSwitcher />
       </div>

@@ -23,6 +23,7 @@
   },
   "nav": {
     "backToDashboard": "Quay lai Bang dieu khien",
+    "backToTop": "Ve trang chu",
     "dashboard": "Bang dieu khien",
     "users": "Quan ly nguoi dung",
     "organizations": "Quan ly to chuc"

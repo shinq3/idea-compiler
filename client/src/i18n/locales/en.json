@@ -23,6 +23,7 @@
   },
   "nav": {
     "backToDashboard": "Back to Dashboard",
+    "backToTop": "Back to Top",
     "dashboard": "Dashboard",
     "users": "Users",
     "organizations": "Organizations"
