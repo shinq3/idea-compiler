@@ -208,7 +208,7 @@ export default function Landing() {
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${heroBgImage})` }}
         />
-        <div className="absolute inset-0 bg-background/80 dark:bg-background/85 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-background/50 dark:bg-background/60" />
         <div className="relative max-w-6xl mx-auto px-6 py-20 md:py-28">
           <div className="text-center max-w-3xl mx-auto">
             <Badge variant="secondary" className="mb-4 text-xs" data-testid="badge-tagline">
