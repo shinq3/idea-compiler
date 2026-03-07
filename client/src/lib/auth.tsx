@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
+import { queryClient } from "./queryClient";
 
 interface AuthUser {
   id: number;
@@ -79,12 +80,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(TOKEN_KEY, data.token);
     setToken(data.token);
     setUser(data.user);
+    queryClient.clear();
   };
 
   const logout = () => {
     localStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setUser(null);
+    queryClient.clear();
     setLocation("/login");
   };
 
