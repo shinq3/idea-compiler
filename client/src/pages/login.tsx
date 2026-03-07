@@ -25,7 +25,7 @@ export default function Login() {
     setLoading(true);
     try {
       await login(loginId, password);
-      setLocation("/");
+      setLocation("/dashboard");
     } catch (err: any) {
       toast({ title: t("auth.loginFailed"), description: err.message, variant: "destructive" });
     } finally {

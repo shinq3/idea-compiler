@@ -110,7 +110,7 @@ export default function ProjectDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       toast({ title: t("projectDetail.deleted") });
-      navigate("/");
+      navigate("/dashboard");
     },
     onError: (err: any) => {
       toast({ title: t("common.error"), description: err.message, variant: "destructive" });
@@ -188,7 +188,7 @@ export default function ProjectDetail() {
       <Layout>
         <div className="flex flex-col items-center justify-center py-20">
           <h2 className="text-lg font-semibold mb-2">{t("projectDetail.projectNotFound")}</h2>
-          <Link href="/">
+          <Link href="/dashboard">
             <Button variant="outline" data-testid="button-back-to-dashboard">
               <ArrowLeft className="w-4 h-4 mr-1" />
               {t("nav.backToDashboard")}
@@ -204,7 +204,7 @@ export default function ProjectDetail() {
   return (
     <Layout
       actions={
-        <Link href="/">
+        <Link href="/dashboard">
           <Button variant="ghost" size="sm" data-testid="button-back">
             <ArrowLeft className="w-4 h-4 mr-1" />
             {t("common.back")}

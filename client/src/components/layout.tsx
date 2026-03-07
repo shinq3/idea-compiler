@@ -22,7 +22,7 @@ export function Layout({ children, title, actions }: LayoutProps) {
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 px-6 h-14">
           <div className="flex items-center gap-4">
-            <Link href="/">
+            <Link href="/dashboard">
               <div className="flex items-center gap-2 cursor-pointer" data-testid="link-home">
                 <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary">
                   <FolderKanban className="w-4 h-4 text-primary-foreground" />
@@ -32,9 +32,9 @@ export function Layout({ children, title, actions }: LayoutProps) {
             </Link>
 
             <nav className="hidden sm:flex items-center gap-1">
-              <Link href="/">
+              <Link href="/dashboard">
                 <Button
-                  variant={location === "/" ? "secondary" : "ghost"}
+                  variant={location === "/dashboard" ? "secondary" : "ghost"}
                   size="sm"
                   className="text-xs"
                   data-testid="nav-dashboard"

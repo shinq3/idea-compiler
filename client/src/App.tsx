@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { I18nProvider } from "@/i18n";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import NotFound from "@/pages/not-found";
+import Landing from "@/pages/landing";
 import Dashboard from "@/pages/dashboard";
 import ProjectDetail from "@/pages/project-detail";
 import Login from "@/pages/login";
@@ -30,7 +31,7 @@ function ProtectedRoute({ component: Component, requiredRoles, ...rest }: any) {
   }
 
   if (requiredRoles && !requiredRoles.includes(user.role)) {
-    return <Redirect to="/" />;
+    return <Redirect to="/dashboard" />;
   }
 
   return <Component {...rest} />;
@@ -49,10 +50,13 @@ function Router() {
 
   return (
     <Switch>
-      <Route path="/login">
-        {user ? <Redirect to="/" /> : <Login />}
-      </Route>
       <Route path="/">
+        {user ? <Redirect to="/dashboard" /> : <Landing />}
+      </Route>
+      <Route path="/login">
+        {user ? <Redirect to="/dashboard" /> : <Login />}
+      </Route>
+      <Route path="/dashboard">
         <ProtectedRoute component={Dashboard} />
       </Route>
       <Route path="/projects/:id">

@@ -22,8 +22,18 @@ A web application that helps nurture business projects from RFP to kickoff. Proj
 - **Login**: Accepts username OR email
 - **Middleware**: `requireAuth`, `requireRole(...roles)`, `requireProjectAccess`
 
+## Routes
+- `/` - Landing page (public LP with AI demo; redirects to /dashboard if logged in)
+- `/login` - Login page
+- `/dashboard` - Project dashboard (protected)
+- `/projects/:id` - Project detail (protected)
+- `/users` - User management (protected, admin/org_admin/pm)
+- `/organizations` - Organization management (protected, admin/org_admin)
+- `/profile` - User profile (protected)
+
 ## Key Features
-1. **Project Dashboard** - Overview of all projects with filtering/search
+1. **Landing Page** - Service overview with live AI demo (no auth required)
+2. **Project Dashboard** - Overview of all projects with filtering/search
 2. **Project Creation** - Title-only or with RFP PDF upload
 3. **Project Deletion** - Delete project with confirmation dialog (cascades to all related data)
 4. **Common Input UI** - Text, meeting notes, and file uploads
@@ -93,7 +103,8 @@ client/src/
     auth.tsx                  - AuthProvider, useAuth, getToken
     queryClient.ts            - TanStack Query client with auth headers
   pages/
-    dashboard.tsx             - Project list with filters
+    landing.tsx               - Public landing page with AI demo
+    dashboard.tsx             - Project list with filters (route: /dashboard)
     project-detail.tsx        - Full project view with tabs
     login.tsx                 - Login page
     user-management.tsx       - User CRUD (role-scoped)
@@ -152,6 +163,10 @@ shared/
 - `POST /api/projects` - Create project (admin/org_admin/pm)
 - `GET/PATCH/DELETE /api/projects/:id` - Get/update/delete project
 - `GET/POST/DELETE /api/projects/:id/members` - Project member management
+
+### Demo (public, no auth)
+- `POST /api/demo/analyze` - Analyze text and generate summary (landing page demo)
+- `POST /api/demo/transcribe` - Transcribe audio file (landing page demo)
 
 ### Project Data
 - `GET/POST /api/projects/:id/inputs` - List/add inputs

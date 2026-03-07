@@ -112,6 +112,80 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
+  // ===== DEMO / LANDING PAGE API (public, no auth) =====
+
+  app.post("/api/demo/analyze", async (req, res) => {
+    try {
+      const { text } = req.body;
+      if (!text || typeof text !== "string" || text.trim().length < 10) {
+        return res.status(400).json({ message: "Please provide at least 10 characters of text." });
+      }
+      const truncated = text.substring(0, 8000);
+      const structured = await extractStructuredData(truncated);
+      const summaryJson = await generateSummary(
+        null,
+        [truncated],
+        structured.items.map((item) => ({ category: item.category, valueJson: item.value }))
+      );
+      let budgetMin: number | null = null;
+      let budgetMax: number | null = null;
+      let releaseDateTarget: string | null = null;
+      for (const item of structured.items) {
+        if (item.category === "budget" && item.value) {
+          const desc = JSON.stringify(item.value);
+          const nums = desc.match(/[\d,]+万|[\d,]+億|[\d,]+千万|[\d,]+百万|\d[\d,]*(?:\.\d+)?/g);
+          if (nums) {
+            const parsed = nums.map((n: string) => {
+              let val = parseFloat(n.replace(/,/g, ""));
+              if (n.includes("億")) val *= 100000000;
+              else if (n.includes("千万")) val *= 10000000;
+              else if (n.includes("百万")) val *= 1000000;
+              else if (n.includes("万")) val *= 10000;
+              return val;
+            }).filter((v: number) => v > 0).sort((a: number, b: number) => a - b);
+            if (parsed.length >= 2) {
+              budgetMin = Math.round(parsed[0]);
+              budgetMax = Math.round(parsed[parsed.length - 1]);
+            } else if (parsed.length === 1) {
+              budgetMin = Math.round(parsed[0]);
+            }
+          }
+        }
+        if (item.category === "timeline" && item.value) {
+          const desc = JSON.stringify(item.value);
+          const dateMatch = desc.match(/(\d{4})[\/\-年](\d{1,2})[\/\-月](\d{1,2})?/);
+          if (dateMatch) {
+            releaseDateTarget = `${dateMatch[1]}-${dateMatch[2].padStart(2, "0")}-${(dateMatch[3] || "01").padStart(2, "0")}`;
+          }
+        }
+      }
+      res.json({
+        summary: summaryJson,
+        structuredItems: structured.items.slice(0, 20),
+        extracted: { budgetMin, budgetMax, releaseDateTarget },
+      });
+    } catch (error: any) {
+      console.error("Demo analyze error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post("/api/demo/transcribe", audioUpload.single("audio"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No audio file provided" });
+      }
+      const text = await transcribeAudio(req.file.path, req.file.originalname);
+      try { fs.unlinkSync(req.file.path); } catch {}
+      res.json({ text });
+    } catch (error: any) {
+      if (req.file) {
+        try { fs.unlinkSync(req.file.path); } catch {}
+      }
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // ===== AUTH ROUTES (public) =====
 
   app.post("/api/auth/login", async (req, res) => {
