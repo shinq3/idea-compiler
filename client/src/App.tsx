@@ -51,7 +51,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/">
-        {user ? <Redirect to="/dashboard" /> : <Landing />}
+        <Landing />
       </Route>
       <Route path="/login">
         {user ? <Redirect to="/dashboard" /> : <Login />}

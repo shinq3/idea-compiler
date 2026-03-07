@@ -88,7 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(null);
     setUser(null);
     queryClient.clear();
-    setLocation("/login");
+    setLocation("/");
   };
 
   const refreshUser = async () => {

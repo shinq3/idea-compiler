@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { useI18n } from "@/i18n";
+import { useAuth } from "@/lib/auth";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -129,6 +130,7 @@ export default function Landing() {
     }
   };
 
+  const { user } = useAuth();
   const s = result ? getSummaryContent(result.summary, locale) : null;
 
   return (
@@ -143,14 +145,24 @@ export default function Landing() {
           </div>
           <div className="flex items-center gap-2">
             <LanguageSwitcher />
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => navigate("/login")}
-              data-testid="button-login"
-            >
-              {t("auth.login")}
-            </Button>
+            {user ? (
+              <Button
+                size="sm"
+                onClick={() => navigate("/dashboard")}
+                data-testid="button-go-dashboard"
+              >
+                {t("nav.dashboard")}
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => navigate("/login")}
+                data-testid="button-login"
+              >
+                {t("auth.login")}
+              </Button>
+            )}
           </div>
         </div>
       </header>
