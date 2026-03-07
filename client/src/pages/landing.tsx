@@ -231,9 +231,9 @@ export default function Landing() {
               </Button>
               <Button
                 size="lg"
-                variant="outline"
                 onClick={() => navigate("/login")}
                 data-testid="button-signup-hero"
+                className="bg-white text-emerald-800 hover:bg-white/90 border-2 border-white font-bold shadow-lg"
               >
                 {t("landing.freeSignup")}
               </Button>
