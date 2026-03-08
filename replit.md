@@ -7,7 +7,7 @@ A web application that helps nurture business projects from RFP to kickoff. Proj
 - **Frontend**: React + TypeScript + Vite + TailwindCSS + shadcn/ui
 - **Backend**: Express.js (Node/TypeScript)
 - **Database**: PostgreSQL (via Drizzle ORM)
-- **AI**: OpenAI API (o4-mini for extraction/summaries, gpt-4o-mini for slides/translations)
+- **AI**: OpenAI API (o4-mini for extraction/summaries, gpt-4o-mini for translations), Anthropic Claude (claude-sonnet-4-6 for slide generation via Replit AI Integrations)
 - **Auth**: JWT (jsonwebtoken + bcrypt), stored in localStorage
 - **File Processing**: pdf-parse for PDF text extraction, multer for file uploads
 

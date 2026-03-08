@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error("OPENAI_API_KEY is not set. Please set it in environment variables.");
@@ -6,6 +7,11 @@ if (!process.env.OPENAI_API_KEY) {
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+});
+
+const anthropic = new Anthropic({
+  apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY,
+  baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
 });
 
 const MODEL = "o4-mini";
@@ -273,12 +279,7 @@ export async function generateSlides(
   documentType: string,
   locale: string
 ): Promise<string> {
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content: `You are a professional presentation designer. Convert the given document into rich, visually engaging reveal.js HTML slides.
+  const systemPrompt = `You are a professional presentation designer. Convert the given document into rich, visually engaging reveal.js HTML slides.
 
 OUTPUT FORMAT:
 - Output ONLY <section> elements (no full HTML page, no <html>/<head>/<body>/<script> tags).
@@ -379,16 +380,20 @@ GENERAL RULES:
 - Keep text concise. No walls of text.
 - Use color palette: primary #667eea, success #48bb78, warning #ed8936, danger #fc8181, dark #2d3748.
 - Always use inline styles (no external CSS classes).
-- Write in the language of the input document.`,
-      },
+- Write in the language of the input document.`;
+
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 8192,
+    system: systemPrompt,
+    messages: [
       {
         role: "user",
         content: `Convert this ${documentType === "kickoff" ? "Kickoff Document" : "Feature Proposal"} to rich visual reveal.js slides:\n\n${documentMarkdown}`,
       },
     ],
-    max_tokens: 12000,
   });
 
-  const raw = response.choices[0]?.message?.content || "";
+  const raw = message.content[0]?.type === "text" ? message.content[0].text : "";
   return raw.replace(/^```html?\n?/i, "").replace(/\n?```$/i, "").trim();
 }
