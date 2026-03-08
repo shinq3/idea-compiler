@@ -484,25 +484,102 @@ SLIDE TYPES & TEMPLATES:
       </div>
     </section>
 
+GRAPHIC-FIRST DESIGN PHILOSOPHY:
+You are creating a VISUAL presentation, NOT a text document on slides. Follow these principles:
+- SHOW, don't tell. Replace text with graphics wherever possible.
+- Every slide MUST have a dominant visual element (diagram, chart, icon composition, gauge, matrix, or illustration).
+- Text is supporting — use it only for labels, short captions, and key numbers. NO paragraphs. NO bullet lists longer than 3 items.
+- If a concept can be drawn as a diagram, it MUST be a diagram.
+
+MANDATORY GRAPHIC ELEMENTS (use at least 5 of these across the presentation):
+
+A. PROGRESS BARS / GAUGES:
+   <div style="background:#e2e8f0;border-radius:8px;height:18px;width:100%;overflow:hidden;margin:6px 0">
+     <div style="background:linear-gradient(90deg,#667eea,#764ba2);height:100%;width:75%;border-radius:8px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px">
+       <span style="color:white;font-size:0.6em;font-weight:700">75%</span>
+     </div>
+   </div>
+
+B. DONUT CHARTS (for metrics/scores):
+   <div style="width:100px;height:100px;border-radius:50%;background:conic-gradient(#667eea 0% 75%, #e2e8f0 75% 100%);display:flex;align-items:center;justify-content:center;margin:0 auto">
+     <div style="width:72px;height:72px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:1.3em;font-weight:700;color:#667eea">75%</div>
+   </div>
+
+C. ICON-CENTRIC CARDS (large emoji + minimal text):
+   <div style="text-align:center;padding:20px">
+     <div style="font-size:3em;margin-bottom:8px">🎯</div>
+     <div style="font-weight:700;font-size:0.9em">Label</div>
+     <div style="font-size:0.65em;color:#718096;margin-top:4px">One line description</div>
+   </div>
+
+D. CONNECTING ARROWS & FLOW LINES (use → ⬇️ ⟶ between elements to show relationships)
+
+E. STACKED BAR / HORIZONTAL BAR CHARTS:
+   <div style="display:flex;align-items:center;gap:8px;margin:6px 0">
+     <div style="width:80px;font-size:0.65em;text-align:right;font-weight:600">Label</div>
+     <div style="flex:1;background:#e2e8f0;border-radius:6px;height:24px;overflow:hidden">
+       <div style="background:#667eea;height:100%;width:65%;border-radius:6px"></div>
+     </div>
+     <div style="width:40px;font-size:0.65em;font-weight:700;color:#667eea">65%</div>
+   </div>
+
+F. CONCENTRIC / NESTED CIRCLES (for scope, layers, priorities):
+   <div style="display:flex;align-items:center;justify-content:center;margin:20px auto">
+     <div style="width:240px;height:240px;border-radius:50%;background:rgba(102,126,234,0.1);border:2px solid #667eea;display:flex;align-items:center;justify-content:center;position:relative">
+       <div style="position:absolute;top:8px;font-size:0.6em;color:#667eea;font-weight:600">Outer Layer</div>
+       <div style="width:160px;height:160px;border-radius:50%;background:rgba(102,126,234,0.15);border:2px solid #667eea;display:flex;align-items:center;justify-content:center">
+         <div style="width:80px;height:80px;border-radius:50%;background:#667eea;color:white;display:flex;align-items:center;justify-content:center;font-size:0.7em;font-weight:700">Core</div>
+       </div>
+     </div>
+   </div>
+
+G. MATRIX / QUADRANT CHART (for priority, impact/effort, risk assessment):
+   <div style="display:grid;grid-template-columns:40px 1fr 1fr;grid-template-rows:auto 1fr 1fr;gap:2px;margin-top:20px;max-width:500px;margin-left:auto;margin-right:auto">
+     <div></div>
+     <div style="text-align:center;font-size:0.65em;font-weight:600;padding:4px;color:#718096">Low Effort</div>
+     <div style="text-align:center;font-size:0.65em;font-weight:600;padding:4px;color:#718096">High Effort</div>
+     <div style="writing-mode:vertical-lr;transform:rotate(180deg);text-align:center;font-size:0.65em;font-weight:600;color:#718096">High Impact</div>
+     <div style="background:#c6f6d5;padding:14px;border-radius:10px 0 0 0;text-align:center;font-size:0.7em">✅ Quick Wins</div>
+     <div style="background:#fefcbf;padding:14px;border-radius:0 10px 0 0;text-align:center;font-size:0.7em">🎯 Strategic</div>
+     <div style="writing-mode:vertical-lr;transform:rotate(180deg);text-align:center;font-size:0.65em;font-weight:600;color:#718096">Low Impact</div>
+     <div style="background:#fed7d7;padding:14px;border-radius:0 0 0 10px;text-align:center;font-size:0.7em">⚡ Fill-ins</div>
+     <div style="background:#e2e8f0;padding:14px;border-radius:0 0 10px 0;text-align:center;font-size:0.7em">❌ Avoid</div>
+   </div>
+
+H. TIMELINE WITH VISUAL MILESTONES (horizontal with connecting line):
+   <div style="position:relative;margin-top:40px;padding:0 20px">
+     <div style="position:absolute;top:20px;left:40px;right:40px;height:4px;background:linear-gradient(90deg,#667eea,#48bb78,#ed8936);border-radius:2px"></div>
+     <div style="display:flex;justify-content:space-between;position:relative">
+       <div style="text-align:center;z-index:1">
+         <div style="width:44px;height:44px;border-radius:50%;background:#667eea;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;margin:0 auto;box-shadow:0 2px 8px rgba(102,126,234,0.4)">1</div>
+         <div style="font-size:0.7em;font-weight:600;margin-top:10px">Phase 1</div>
+         <div style="font-size:0.58em;color:#718096">4 weeks</div>
+       </div>
+     </div>
+   </div>
+
 INFORMATION DESIGN RULES:
-- ALWAYS include at least 2 diagram slides (process flow, architecture, comparison matrix, or similar). This is mandatory.
+- MINIMUM 5 diagram/graphic slides out of the total. Text-only slides are FORBIDDEN.
 - Synthesize and restructure the information — do NOT just copy text from the document into slides.
 - Extract hidden relationships, dependencies, and logical groupings from the document.
-- Convert lists into visual diagrams wherever possible (flows, hierarchies, matrices).
-- When the document mentions a process or workflow, create a PROCESS FLOW DIAGRAM.
-- When the document compares options or shows before/after, create a COMPARISON MATRIX.
-- When the document describes system components, create an ARCHITECTURE DIAGRAM.
-- When numbers or percentages are mentioned, create circular/donut METRIC visualizations.
+- Convert ALL lists into visual representations (flows, card grids, bar charts, matrices).
+- When the document mentions a process or workflow → PROCESS FLOW DIAGRAM with arrows.
+- When the document compares options or shows before/after → COMPARISON MATRIX or QUADRANT.
+- When the document describes system components → ARCHITECTURE DIAGRAM with layers.
+- When numbers, percentages, or scores appear → DONUT CHARTS, PROGRESS BARS, or BAR CHARTS.
+- When priorities or categories exist → CONCENTRIC CIRCLES or QUADRANT MATRIX.
+- When timelines or phases exist → HORIZONTAL TIMELINE with connected milestone nodes.
+- When scope is defined (in/out) → NESTED CIRCLES showing included vs excluded.
 
 GENERAL RULES:
 - Target 12-18 slides total.
 - Every slide must use a DIFFERENT layout from its neighbors. Maximum 2 consecutive slides of the same type.
-- Use appropriate emoji as visual icons.
-- Keep text concise — max 3-4 lines per card. No walls of text.
+- Use large emoji (2-3em) as visual anchors on every slide.
+- Keep text concise — max 2-3 short lines per card. ZERO paragraphs.
 - Use color palette: primary #667eea, secondary #764ba2, success #48bb78, warning #ed8936, danger #fc8181, dark #1a1a2e/#2d3748, accent #e53e3e.
 - Always use inline styles (no external CSS classes).
 - Write in the language of the input document.
-- Make each slide visually distinct and impactful — this is an executive presentation, not a document dump.`;
+- This is an executive presentation — every slide must be visually striking and immediately understandable without reading.`;
 
   const response = await openai.chat.completions.create({
     model: "gpt-5.4",
