@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Users, Building2, LogOut, UserCircle, Menu, X, FolderKanban } from "lucide-react";
-import logoImg from "@assets/ideacompiler_logo_1772929547592.png";
+import logoImg from "@assets/ideacompiler_logo_1772929886013.png";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/i18n";

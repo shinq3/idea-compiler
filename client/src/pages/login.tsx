@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ArrowLeft } from "lucide-react";
-import logoImg from "@assets/ideacompiler_logo_1772929547592.png";
+import logoImg from "@assets/ideacompiler_logo_1772929886013.png";
 import { LanguageSwitcher } from "@/components/language-switcher";
 
 export default function Login() {

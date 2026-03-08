@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import type { SummaryContent } from "@shared/schema";
 import heroBgImage from "@assets/Gemini_Generated_Image_6i2h2w6i2h2w6i2h_1772852193328.png";
-import logoImg from "@assets/ideacompiler_logo_1772929547592.png";
+import logoImg from "@assets/ideacompiler_logo_1772929886013.png";
 import scene1Img from "@assets/scene1_meeting.png";
 import scene2Img from "@assets/scene2_scattered.png";
 import scene3Img from "@assets/scene3_input.png";
