@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { FolderKanban, Users, Building2, LogOut, UserCircle, Menu, X } from "lucide-react";
+import { Users, Building2, LogOut, UserCircle, Menu, X, FolderKanban } from "lucide-react";
+import logoImg from "@assets/ideacompiler_logo_1772929547592.png";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/i18n";
@@ -46,11 +47,8 @@ export function Layout({ children, title, actions }: LayoutProps) {
             </Button>
 
             <Link href="/dashboard">
-              <div className="flex items-center gap-2 cursor-pointer shrink-0" data-testid="link-home">
-                <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary">
-                  <FolderKanban className="w-4 h-4 text-primary-foreground" />
-                </div>
-                <span className="font-semibold text-sm tracking-tight hidden sm:inline">IdeaCompiler</span>
+              <div className="flex items-center cursor-pointer shrink-0" data-testid="link-home">
+                <img src={logoImg} alt="IdeaCompiler" className="h-9 w-auto object-contain" />
               </div>
             </Link>
 

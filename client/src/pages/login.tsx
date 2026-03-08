@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { FolderKanban, Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
+import logoImg from "@assets/ideacompiler_logo_1772929547592.png";
 import { LanguageSwitcher } from "@/components/language-switcher";
 
 export default function Login() {
@@ -46,11 +47,8 @@ export default function Login() {
       </div>
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center space-y-2">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="flex items-center justify-center w-10 h-10 rounded-md bg-primary">
-              <FolderKanban className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="text-xl font-semibold tracking-tight">IdeaCompiler</span>
+          <div className="flex items-center justify-center mb-2">
+            <img src={logoImg} alt="IdeaCompiler" className="h-12 w-auto object-contain" />
           </div>
           <CardTitle className="text-lg" data-testid="text-login-title">{t("auth.loginTitle")}</CardTitle>
         </CardHeader>

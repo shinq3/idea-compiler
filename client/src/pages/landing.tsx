@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import type { SummaryContent } from "@shared/schema";
 import heroBgImage from "@assets/Gemini_Generated_Image_6i2h2w6i2h2w6i2h_1772852193328.png";
+import logoImg from "@assets/ideacompiler_logo_1772929547592.png";
 import scene1Img from "@assets/scene1_meeting.png";
 import scene2Img from "@assets/scene2_scattered.png";
 import scene3Img from "@assets/scene3_input.png";
@@ -183,11 +184,8 @@ export default function Landing() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-2 px-4 sm:px-6 h-14 overflow-hidden">
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary">
-              <FolderKanban className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-semibold text-sm tracking-tight hidden sm:inline">IdeaCompiler</span>
+          <div className="flex items-center shrink-0">
+            <img src={logoImg} alt="IdeaCompiler" className="h-9 w-auto object-contain" />
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <LanguageSwitcher />
