@@ -504,18 +504,21 @@ GENERAL RULES:
 - Write in the language of the input document.
 - Make each slide visually distinct and impactful — this is an executive presentation, not a document dump.`;
 
-  const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 8192,
-    system: systemPrompt,
+  const response = await openai.chat.completions.create({
+    model: "gpt-5.4",
     messages: [
+      {
+        role: "system",
+        content: systemPrompt,
+      },
       {
         role: "user",
         content: `Convert this ${documentType === "kickoff" ? "Kickoff Document" : "Feature Proposal"} to rich visual reveal.js slides:\n\n${documentMarkdown}`,
       },
     ],
+    max_completion_tokens: 16000,
   });
 
-  const raw = message.content[0]?.type === "text" ? message.content[0].text : "";
+  const raw = response.choices[0]?.message?.content || "";
   return raw.replace(/^```html?\n?/i, "").replace(/\n?```$/i, "").trim();
 }
