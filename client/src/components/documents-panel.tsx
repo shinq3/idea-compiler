@@ -111,7 +111,8 @@ export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
         await queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/documents`] });
       }
 
-      const res = await fetch(`/api/documents/${doc.id}/${format}`, {
+      const url_params = format === "pptx" ? `?locale=${locale}` : "";
+      const res = await fetch(`/api/documents/${doc.id}/${format}${url_params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {

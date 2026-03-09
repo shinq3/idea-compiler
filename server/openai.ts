@@ -599,3 +599,105 @@ GENERAL RULES:
   const raw = response.choices[0]?.message?.content || "";
   return raw.replace(/^```html?\n?/i, "").replace(/\n?```$/i, "").trim();
 }
+
+export interface PptxSlideData {
+  bgColor?: string;
+  title?: string;
+  subtitle?: string;
+  elements: PptxElement[];
+}
+
+export type PptxElement =
+  | { type: "text"; text: string; x: number; y: number; w: number; h: number; fontSize: number; bold?: boolean; color?: string; align?: "left" | "center" | "right"; valign?: "top" | "middle" | "bottom"; wrap?: boolean }
+  | { type: "shape"; shape: "rect" | "roundRect" | "oval"; x: number; y: number; w: number; h: number; fill: string; borderColor?: string; borderWidth?: number; radius?: number; shadow?: boolean }
+  | { type: "bullets"; items: string[]; x: number; y: number; w: number; h: number; fontSize: number; color?: string; bulletColor?: string }
+  | { type: "progressBar"; x: number; y: number; w: number; h: number; percent: number; barColor: string; bgColor?: string; label?: string; labelColor?: string }
+  | { type: "table"; rows: string[][]; x: number; y: number; w: number; headerColor?: string; headerTextColor?: string; rowColors?: string[] };
+
+export async function generatePptxData(documentMarkdown: string, documentType: string, lang: string): Promise<PptxSlideData[]> {
+  const systemPrompt = `You are a presentation designer that outputs structured JSON for PowerPoint generation via pptxgenjs.
+Given a document, create 12-18 slides as a JSON array. Each slide is an object with:
+- bgColor: hex color without # (e.g. "1a1a2e"), optional (default white)
+- title: slide title text, optional
+- subtitle: smaller text below title, optional
+- elements: array of visual elements
+
+Element types:
+1. "text": { type:"text", text, x, y, w, h, fontSize, bold?, color?, align?, valign?, wrap? }
+2. "shape": { type:"shape", shape:"rect"|"roundRect"|"oval", x, y, w, h, fill (hex no #), borderColor?, borderWidth?, radius?, shadow? }
+3. "bullets": { type:"bullets", items:string[], x, y, w, h, fontSize, color?, bulletColor? }
+4. "progressBar": { type:"progressBar", x, y, w, h, percent (0-100), barColor (hex no #), bgColor?, label?, labelColor? }
+5. "table": { type:"table", rows:string[][] (first row=headers), x, y, w, headerColor?, headerTextColor?, rowColors? }
+
+COORDINATE SYSTEM: Wide layout 13.33" x 7.5". x/y in inches from top-left. Keep content within 0.5-12.83 horizontal, 0.3-7.0 vertical.
+
+COLOR PALETTE (hex without #):
+- Primary: 667eea, Secondary: 764ba2, Success: 48bb78, Warning: ed8936, Danger: e53e3e
+- Dark backgrounds: 1a1a2e, 16213e, 0f3460
+- Text: 2d3748 (dark), 718096 (muted), FFFFFF (on dark bg)
+- Light fills: F7FAFC, EDF2F7, E2E8F0
+
+DESIGN RULES:
+1. First slide: dark bg (1a1a2e), large centered title, subtitle
+2. Last slide: dark bg, "Next Steps" or closing with numbered action items
+3. Use shapes as backgrounds for cards — roundRect with shadow=true
+4. For metrics: large bold number text + label below, optionally with a colored circle shape behind
+5. For progress/KPIs: use progressBar elements with labels
+6. For comparisons: side-by-side card groups using shapes + text overlays
+7. For timelines: horizontal row of oval shapes connected conceptually, with text labels
+8. For lists: use bullets element (max 6 items)
+9. Tables for structured data (max 8 rows)
+10. Every slide should have visual variety — alternate layouts
+11. Use large emoji in text elements as visual anchors (font size 28-36)
+12. Keep text SHORT — max 2 lines per text element. No paragraphs.
+13. Card layouts: shape (roundRect, fill F7FAFC, shadow true) + text overlay on top
+14. Accent bars: thin rect shapes (w:0.06) on left side of cards with accent colors
+15. Write in ${lang === "ja" ? "Japanese" : lang === "vi" ? "Vietnamese" : "English"}
+
+SLIDE LAYOUT PATTERNS (use these as templates):
+
+TITLE SLIDE:
+{ bgColor:"1a1a2e", title:"Presentation Title", subtitle:"Subtitle text",
+  elements:[{type:"text",text:"🚀",x:5.5,y:1.0,w:2,h:1,fontSize:48,align:"center"}] }
+
+METRIC CARDS (3-column):
+{ elements:[
+  {type:"shape",shape:"roundRect",x:0.5,y:1.8,w:3.8,h:2.5,fill:"F7FAFC",shadow:true,radius:0.12},
+  {type:"shape",shape:"rect",x:0.5,y:1.8,w:0.06,h:2.5,fill:"667eea"},
+  {type:"text",text:"📊",x:0.7,y:1.9,w:3.4,h:0.6,fontSize:28,align:"center"},
+  {type:"text",text:"85%",x:0.7,y:2.5,w:3.4,h:0.6,fontSize:28,bold:true,color:"667eea",align:"center"},
+  {type:"text",text:"Metric Label",x:0.7,y:3.1,w:3.4,h:0.5,fontSize:12,color:"718096",align:"center"}
+]}
+
+PROGRESS BARS:
+{ elements:[
+  {type:"progressBar",x:3.5,y:2.0,w:8.0,h:0.3,percent:75,barColor:"667eea",label:"Feature A",labelColor:"2d3748"},
+  {type:"progressBar",x:3.5,y:2.8,w:8.0,h:0.3,percent:60,barColor:"48bb78",label:"Feature B",labelColor:"2d3748"}
+]}
+
+TABLE:
+{ elements:[
+  {type:"table",rows:[["Header1","Header2","Header3"],["A","B","C"],["D","E","F"]],x:0.8,y:1.8,w:11.5,headerColor:"667eea",headerTextColor:"FFFFFF"}
+]}
+
+Output ONLY valid JSON array. No markdown, no code fences, no explanation.`;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-5.4",
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: `Create PowerPoint slides JSON for this ${documentType === "kickoff" ? "Kickoff Document" : "Feature Proposal"}:\n\n${documentMarkdown}` },
+    ],
+    max_completion_tokens: 16000,
+  });
+
+  const raw = response.choices[0]?.message?.content || "[]";
+  const cleaned = raw.replace(/^```json?\n?/i, "").replace(/\n?```$/i, "").trim();
+  const slides = safeJsonParse(cleaned, []);
+
+  if (!Array.isArray(slides) || slides.length === 0) {
+    return [{ bgColor: "1a1a2e", title: documentType === "kickoff" ? "Kickoff Document" : "Feature Proposal", subtitle: "Generated presentation", elements: [] }];
+  }
+
+  return slides as PptxSlideData[];
+}

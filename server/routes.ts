@@ -9,9 +9,9 @@ import { PDFParse, VerbosityLevel } from "pdf-parse";
 import { storage } from "./storage";
 import { db } from "./db";
 import { documents as documentsTable } from "@shared/schema";
-import { extractStructuredData, generateSummary, generateDocument, generateSlides, transcribeAudio, translateInputText } from "./openai";
+import { extractStructuredData, generateSummary, generateDocument, generateSlides, generatePptxData, transcribeAudio, translateInputText } from "./openai";
 import { requireAuth, requireRole, requireProjectAccess, hashPassword, verifyPassword, generateToken } from "./auth";
-import { generatePptxBuffer } from "./pptx";
+import { generatePptxFromData } from "./pptx";
 
 const uploadDir = path.resolve("uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -177,14 +177,7 @@ export async function registerRoutes(
             const title = doc.type === "kickoff" ? "Kickoff Document" : "Feature Proposal";
             fs.writeFileSync(htmlPath, buildRevealHtml(doc.slidesHtml, title), "utf-8");
           }
-          const pptxPath = path.join(docsOutputDir, `${fileBase}.pptx`);
-          if (!fs.existsSync(pptxPath)) {
-            try {
-              const title = doc.type === "kickoff" ? "Kickoff Document" : "Feature Proposal";
-              const buf = await generatePptxBuffer(doc.slidesHtml, title);
-              fs.writeFileSync(pptxPath, buf);
-            } catch {}
-          }
+          
         }
       }
       const count = fs.readdirSync(docsOutputDir).length;
@@ -1099,11 +1092,9 @@ export async function registerRoutes(
       const htmlFullPage = buildRevealHtml(cleanHtml, doc.type === "kickoff" ? "Kickoff Document" : "Feature Proposal");
       fs.writeFileSync(path.join(docsOutputDir, `${fileBase}.html`), htmlFullPage, "utf-8");
 
-      try {
-        const pptxBuf = await generatePptxBuffer(cleanHtml, doc.type === "kickoff" ? "Kickoff Document" : "Feature Proposal");
-        fs.writeFileSync(path.join(docsOutputDir, `${fileBase}.pptx`), pptxBuf);
-      } catch (pptxErr: any) {
-        console.error("[slides] PPTX pre-generation failed (non-fatal):", pptxErr.message);
+      const pptxPath = path.join(docsOutputDir, `${fileBase}.pptx`);
+      if (fs.existsSync(pptxPath)) {
+        try { fs.unlinkSync(pptxPath); } catch {}
       }
 
       res.json({ slidesHtml: cleanHtml });
@@ -1145,9 +1136,21 @@ export async function registerRoutes(
       if (fs.existsSync(pptxPath)) {
         pptxBuffer = fs.readFileSync(pptxPath);
       } else {
-        const title = doc.type === "kickoff" ? "Kickoff Document" : "Feature Proposal";
-        pptxBuffer = await generatePptxBuffer(doc.slidesHtml, title);
+        const lang = (req.query.locale as string) || "ja";
+        const cj = doc.contentJson as any;
+        let markdown = "";
+        if (cj && typeof cj === "object") {
+          markdown = cj[lang] || cj.en || cj.ja || cj.vi || doc.contentMd;
+        } else {
+          markdown = doc.contentMd;
+        }
+
+        console.log("[pptx] Generating AI-structured PPTX data...");
+        const pptxSlides = await generatePptxData(markdown, doc.type, lang);
+        const docTitle = doc.type === "kickoff" ? "Kickoff Document" : "Feature Proposal";
+        pptxBuffer = await generatePptxFromData(pptxSlides, docTitle);
         fs.writeFileSync(pptxPath, pptxBuffer);
+        console.log("[pptx] AI-structured PPTX generated:", pptxBuffer.length, "bytes");
       }
 
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.presentationml.presentation");
