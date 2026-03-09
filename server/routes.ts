@@ -154,6 +154,46 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
+  (async () => {
+    try {
+      const allDocs = await db.select().from(documentsTable);
+      for (const doc of allDocs) {
+        const fileBase = `doc-${doc.id}-${doc.type}`;
+        const cj = doc.contentJson as any;
+        if (cj && typeof cj === "object") {
+          for (const lang of ["ja", "en", "vi"]) {
+            const md = cj[lang];
+            if (md) {
+              const mdPath = path.join(docsOutputDir, `${fileBase}-${lang}.md`);
+              if (!fs.existsSync(mdPath)) {
+                fs.writeFileSync(mdPath, md, "utf-8");
+              }
+            }
+          }
+        }
+        if (doc.slidesHtml) {
+          const htmlPath = path.join(docsOutputDir, `${fileBase}.html`);
+          if (!fs.existsSync(htmlPath)) {
+            const title = doc.type === "kickoff" ? "Kickoff Document" : "Feature Proposal";
+            fs.writeFileSync(htmlPath, buildRevealHtml(doc.slidesHtml, title), "utf-8");
+          }
+          const pptxPath = path.join(docsOutputDir, `${fileBase}.pptx`);
+          if (!fs.existsSync(pptxPath)) {
+            try {
+              const title = doc.type === "kickoff" ? "Kickoff Document" : "Feature Proposal";
+              const buf = await generatePptxBuffer(doc.slidesHtml, title);
+              fs.writeFileSync(pptxPath, buf);
+            } catch {}
+          }
+        }
+      }
+      const count = fs.readdirSync(docsOutputDir).length;
+      if (count > 0) console.log(`[docs] Restored ${count} files to documents/ folder`);
+    } catch (e: any) {
+      console.error("[docs] File restoration error:", e.message);
+    }
+  })();
+
   // ===== DEMO / LANDING PAGE API (public, no auth) =====
 
   async function getOrCreateDemoOrg(): Promise<number> {
@@ -999,6 +1039,15 @@ export async function registerRoutes(
         contentMd: contentJson.ja || contentJson.en || "",
         contentJson,
       });
+
+      const fileBase = `doc-${doc.id}-${type}`;
+      const langs = ["ja", "en", "vi"] as const;
+      for (const lang of langs) {
+        const md = (contentJson as any)[lang];
+        if (md) {
+          fs.writeFileSync(path.join(docsOutputDir, `${fileBase}-${lang}.md`), md, "utf-8");
+        }
+      }
 
       res.status(201).json(doc);
     } catch (error: any) {
