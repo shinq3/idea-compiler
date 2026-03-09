@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feature Proposal</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.min.css">
+<style>
+  body { margin: 0; }
+  .reveal { font-family: 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif; }
+  .reveal h1, .reveal h2, .reveal h3, .reveal h4 { font-family: inherit; }
+  .reveal section { padding: 20px 40px; }
+</style>
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+    <section data-background="linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)">
+  <div style="margin-bottom:24px">
+    <span style="font-size:3em">🎙️</span>
+  </div>
+  <h1 style="color:white;font-size:2.4em;text-shadow:2px 2px 8px rgba(0,0,0,0.5);letter-spacing:-0.02em;margin:0">会議AIサマリー基盤 機能提案</h1>
+  <h3 style="color:rgba(255,255,255,0.7);font-weight:300;margin-top:16px">音声入力・資料自動生成・RAG統合で会議から実行までを高速化</h3>
+  <div style="margin-top:40px;display:flex;justify-content:center;gap:24px">
+    <div style="background:rgba(255,255,255,0.1);padding:8px 20px;border-radius:20px;color:rgba(255,255,255,0.8);font-size:0.65em;backdrop-filter:blur(4px)">📅 2026-03-09</div>
+    <div style="background:rgba(255,255,255,0.1);padding:8px 20px;border-radius:20px;color:rgba(255,255,255,0.8);font-size:0.65em;backdrop-filter:blur(4px)">👤 提案資料</div>
+  </div>
+</section>
+
+<section>
+  <h2>📌 エグゼクティブサマリー</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:24px">
+    <div style="background:linear-gradient(180deg,#667eea20,#667eea08);padding:20px;border-radius:14px;border-top:4px solid #667eea;text-align:center">
+      <div style="font-size:1.8em;margin-bottom:8px">🎯</div>
+      <div style="font-weight:700;font-size:0.85em;margin-bottom:6px">Goal</div>
+      <p style="font-size:0.65em;margin:0;color:#4a5568">会議音声から<br>要点とアクションを自動化</p>
+    </div>
+    <div style="background:linear-gradient(180deg,#48bb7820,#48bb7808);padding:20px;border-radius:14px;border-top:4px solid #48bb78;text-align:center">
+      <div style="font-size:1.8em;margin-bottom:8px">🧠</div>
+      <div style="font-weight:700;font-size:0.85em;margin-bottom:6px">Core Solution</div>
+      <p style="font-size:0.65em;margin:0;color:#4a5568">文字起こし＋RAG＋<br>資料生成を一体提供</p>
+    </div>
+    <div style="background:linear-gradient(180deg,#ed893620,#ed893608);padding:20px;border-radius:14px;border-top:4px solid #ed8936;text-align:center">
+      <div style="font-size:1.8em;margin-bottom:8px">🚀</div>
+      <div style="font-weight:700;font-size:0.85em;margin-bottom:6px">MVP Focus</div>
+      <p style="font-size:0.65em;margin:0;color:#4a5568">Mustを先行実装し<br>Shouldは精度と費用で判断</p>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:center;gap:28px;margin-top:28px;flex-wrap:wrap">
+    <div style="text-align:center;min-width:120px">
+      <div style="width:92px;height:92px;border-radius:50%;background:conic-gradient(#667eea 0% 45%, #e2e8f0 45% 100%);display:flex;align-items:center;justify-content:center;margin:0 auto 8px">
+        <div style="width:68px;height:68px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:1.2em;font-weight:700;color:#667eea">5</div>
+      </div>
+      <div style="font-size:0.68em;font-weight:700">Must</div>
+    </div>
+    <div style="text-align:center;min-width:120px">
+      <div style="width:92px;height:92px;border-radius:50%;background:conic-gradient(#48bb78 0% 18%, #e2e8f0 18% 100%);display:flex;align-items:center;justify-content:center;margin:0 auto 8px">
+        <div style="width:68px;height:68px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:1.2em;font-weight:700;color:#48bb78">2</div>
+      </div>
+      <div style="font-size:0.68em;font-weight:700">Should</div>
+    </div>
+    <div style="text-align:center;min-width:120px">
+      <div style="width:92px;height:92px;border-radius:50%;background:conic-gradient(#ed8936 0% 27%, #e2e8f0 27% 100%);display:flex;align-items:center;justify-content:center;margin:0 auto 8px">
+        <div style="width:68px;height:68px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:1.2em;font-weight:700;color:#ed8936">3</div>
+      </div>
+      <div style="font-size:0.68em;font-weight:700">Could</div>
+    </div>
+    <div style="text-align:center;min-width:120px">
+      <div style="width:92px;height:92px;border-radius:50%;background:conic-gradient(#fc8181 0% 72%, #e2e8f0 72% 100%);display:flex;align-items:center;justify-content:center;margin:0 auto 8px">
+        <div style="width:68px;height:68px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:1em;font-weight:700;color:#fc8181">8</div>
+      </div>
+      <div style="font-size:0.68em;font-weight:700">未解決</div>
+    </div>
+  </div>
+</section>
+
+<section data-background="linear-gradient(135deg, #2d3748 0%, #4a5568 100%)">
+  <h2 style="color:white;font-size:2.2em;letter-spacing:-0.01em">Why Now</h2>
+  <p style="color:rgba(255,255,255,0.6);font-size:0.8em;max-width:600px;margin:12px auto 0">会議後処理の遅延・抜け漏れ・横断活用不足を一気通貫で解消する</p>
+  <div style="width:60px;height:3px;background:#667eea;margin:24px auto 0;border-radius:2px"></div>
+</section>
+
+<section>
+  <h2>⚖️ 現状課題 → 目指す姿</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:24px;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08)">
+    <div style="background:linear-gradient(135deg,#fed7d7,#feb2b2);padding:24px;text-align:center">
+      <h3 style="margin:0 0 12px 0;color:#c53030;font-size:0.9em">❌ Before / Problem</h3>
+      <ul style="list-style:none;padding:0;margin:0;text-align:left;font-size:0.7em">
+        <li style="margin:6px 0;padding:6px 0;border-bottom:1px solid rgba(197,48,48,0.15)">議事録作成が手作業で遅い</li>
+        <li style="margin:6px 0;padding:6px 0;border-bottom:1px solid rgba(197,48,48,0.15)">複数会議の文脈が分断される</li>
+        <li style="margin:6px 0;padding:6px 0">音声取得失敗時のデータロス懸念</li>
+      </ul>
+    </div>
+    <div style="background:linear-gradient(135deg,#c6f6d5,#9ae6b4);padding:24px;text-align:center">
+      <h3 style="margin:0 0 12px 0;color:#276749;font-size:0.9em">✅ After / Solution</h3>
+      <ul style="list-style:none;padding:0;margin:0;text-align:left;font-size:0.7em">
+        <li style="margin:6px 0;padding:6px 0;border-bottom:1px solid rgba(39,103,73,0.15)">1分以内に要点・決定事項・次アクション生成</li>
+        <li style="margin:6px 0;padding:6px 0;border-bottom:1px solid rgba(39,103,73,0.15)">RAGで複数回会議を統合要約</li>
+        <li style="margin:6px 0;padding:6px 0">ローカル録音で復元可能</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>🔄 価値提供フロー</h2>
+  <div style="display:flex;align-items:center;justify-content:center;gap:4px;margin-top:32px;flex-wrap:wrap">
+    <div style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:14px 18px;border-radius:12px;text-align:center;min-width:120px">
+      <div style="font-size:1.3em;margin-bottom:4px">🎙️</div>
+      <div style="font-size:0.7em;font-weight:600">音声取得</div>
+    </div>
+    <div style="font-size:1.5em;color:#667eea">→</div>
+    <div style="background:linear-gradient(135deg,#48bb78,#38a169);color:white;padding:14px 18px;border-radius:12px;text-align:center;min-width:120px">
+      <div style="font-size:1.3em;margin-bottom:4px">📝</div>
+      <div style="font-size:0.7em;font-weight:600">文字起こし</div>
+    </div>
+    <div style="font-size:1.5em;color:#48bb78">→</div>
+    <div style="background:linear-gradient(135deg,#ed8936,#dd6b20);color:white;padding:14px 18px;border-radius:12px;text-align:center;min-width:120px">
+      <div style="font-size:1.3em;margin-bottom:4px">🧠</div>
+      <div style="font-size:0.7em;font-weight:600">要約 / RAG統合</div>
+    </div>
+    <div style="font-size:1.5em;color:#ed8936">→</div>
+    <div style="background:linear-gradient(135deg,#e53e3e,#c53030);color:white;padding:14px 18px;border-radius:12px;text-align:center;min-width:120px">
+      <div style="font-size:1.3em;margin-bottom:4px">📄</div>
+      <div style="font-size:0.7em;font-weight:600">資料出力</div>
+    </div>
+  </div>
+  <p style="font-size:0.65em;color:#718096;margin-top:16px;text-align:center">単発会議の即時要約から、複数回会議の知識統合・キックオフ資料生成までを連結</p>
+</section>
+
+<section data-background="linear-gradient(135deg, #2d3748 0%, #4a5568 100%)">
+  <h2 style="color:white;font-size:2.2em;letter-spacing:-0.01em">Feature Scope</h2>
+  <p style="color:rgba(255,255,255,0.6);font-size:0.8em;max-width:600px;margin:12px auto 0">Must / Should / Couldで投資優先度を明確化</p>
+  <div style="width:60px;height:3px;background:#667eea;margin:24px auto 0;border-radius:2px"></div>
+</section>
+
+<section>
+  <h2>🎯 優先順位ポートフォリオ</h2>
+  <div style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:24px;align-items:center;margin-top:18px">
+    <div>
+      <div style="background:#f8fafc;border-radius:16px;padding:18px;border:1px solid #e2e8f0">
+        <div style="display:flex;align-items:center;gap:8px;margin:6px 0">
+          <div style="width:90px;font-size:0.65em;text-align:right;font-weight:700">Must</div>
+          <div style="flex:1;background:#e2e8f0;border-radius:6px;height:24px;overflow:hidden">
+            <div style="background:#667eea;height:100%;width:50%;border-radius:6px"></div>
+          </div>
+          <div style="width:40px;font-size:0.65em;font-weight:700;color:#667eea">5</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin:6px 0">
+          <div style="width:90px;font-size:0.65em;text-align:right;font-weight:700">Should</div>
+          <div style="flex:1;background:#e2e8f0;border-radius:6px;height:24px;overflow:hidden">
+            <div style="background:#48bb78;height:100%;width:20%;border-radius:6px"></div>
+          </div>
+          <div style="width:40px;font-size:0.65em;font-weight:700;color:#48bb78">2</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin:6px 0">
+          <div style="width:90px;font-size:0.65em;text-align:right;font-weight:700">Could</div>
+          <div style="flex:1;background:#e2e8f0;border-radius:6px;height:24px;overflow:hidden">
+            <div style="background:#ed8936;height:100%;width:30%;border-radius:6px"></div>
+          </div>
+          <div style="width:40px;font-size:0.65em;font-weight:700;color:#ed8936">3</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+        <div style="background:linear-gradient(135deg,#eef2ff,#e0e7ff);padding:16px;border-radius:12px;border-left:5px solid #667eea">
+          <h4 style="margin:0 0 8px 0;font-size:0.8em">🎙️ Must</h4>
+          <p style="font-size:0.64em;margin:0;color:#4a5568">音声サマリー / 資料生成 / RAG / 統合 / バックアップ</p>
+        </div>
+        <div style="background:linear-gradient(135deg,#f0fff4,#dcfce7);padding:16px;border-radius:12px;border-left:5px solid #48bb78">
+          <h4 style="margin:0 0 8px 0;font-size:0.8em">⚡ Should</h4>
+          <p style="font-size:0.64em;margin:0;color:#4a5568">ライブ字幕 / 文字起こし方式選択</p>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="display:grid;grid-template-columns:40px 1fr 1fr;grid-template-rows:auto 1fr 1fr;gap:2px;max-width:500px;margin-left:auto;margin-right:auto">
+        <div></div>
+        <div style="text-align:center;font-size:0.65em;font-weight:600;padding:4px;color:#718096">低工数</div>
+        <div style="text-align:center;font-size:0.65em;font-weight:600;padding:4px;color:#718096">高工数</div>
+        <div style="writing-mode:vertical-lr;transform:rotate(180deg);text-align:center;font-size:0.65em;font-weight:600;color:#718096">高価値</div>
+        <div style="background:#c6f6d5;padding:14px;border-radius:10px 0 0 0;text-align:center;font-size:0.66em">✅ 単体サマリー</div>
+        <div style="background:#fefcbf;padding:14px;border-radius:0 10px 0 0;text-align:center;font-size:0.66em">🎯 RAG統合 / 資料生成</div>
+        <div style="writing-mode:vertical-lr;transform:rotate(180deg);text-align:center;font-size:0.65em;font-weight:600;color:#718096">低価値</div>
+        <div style="background:#fed7d7;padding:14px;border-radius:0 0 0 10px;text-align:center;font-size:0.66em">⚡ エクスポート</div>
+        <div style="background:#e2e8f0;padding:14px;border-radius:0 0 10px 0;text-align:center;font-size:0.66em">❌ 外部連携初期導入</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>📋 Must機能の中核</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;text-align:left;margin-top:24px">
+    <div style="background:linear-gradient(135deg,#f5f7fa,#c3cfe2);padding:20px;border-radius:14px;border-left:5px solid #667eea">
+      <h4 style="margin:0 0 8px 0;font-size:0.8em">🎙️ 会議サマリー自動生成</h4>
+      <p style="font-size:0.66em;margin:0;color:#4a5568">要点・決定事項・論点・次アクションを標準出力</p>
+    </div>
+    <div style="background:linear-gradient(135deg,#f0fff4,#c6f6d5);padding:20px;border-radius:14px;border-left:5px solid #48bb78">
+      <h4 style="margin:0 0 8px 0;font-size:0.8em">🧠 RAG統合</h4>
+      <p style="font-size:0.66em;margin:0;color:#4a5568">複数回会議を横断し整合的な文脈を保持</p>
+    </div>
+    <div style="background:linear-gradient(135deg,#fffaf0,#feebc8);padding:20px;border-radius:14px;border-left:5px solid #ed8936">
+      <h4 style="margin:0 0 8px 0;font-size:0.8em">📄 発足資料自動生成</h4>
+      <p style="font-size:0.66em;margin:0;color:#4a5568">キックオフ資料と機能提案書をテンプレート準拠で生成</p>
+    </div>
+    <div style="background:linear-gradient(135deg,#fff5f5,#fed7d7);padding:20px;border-radius:14px;border-left:5px solid #fc8181">
+      <h4 style="margin:0 0 8px 0;font-size:0.8em">💾 ローカル録音バックアップ</h4>
+      <p style="font-size:0.66em;margin:0;color:#4a5568">取得失敗時にも録音復元でデータロスを回避</p>
+    </div>
+    <div style="background:linear-gradient(135deg,#eef2ff,#e9d8fd);padding:20px;border-radius:14px;border-left:5px solid #764ba2">
+      <h4 style="margin:0 0 8px 0;font-size:0.8em">🧩 サマリー統合</h4>
+      <p style="font-size:0.66em;margin:0;color:#4a5568">定例会やフェーズ横断の記録を一文書化</p>
+    </div>
+    <div style="background:linear-gradient(135deg,#f7fafc,#edf2f7);padding:20px;border-radius:14px;border-left:5px solid #a0aec0">
+      <h4 style="margin:0 0 8px 0;font-size:0.8em">👥 主対象</h4>
+      <p style="font-size:0.66em;margin:0;color:#4a5568">参加者・PM・PMO・ナレッジ管理者</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>🏗️ 期待アーキテクチャ</h2>
+  <div style="position:relative;margin-top:24px;min-height:320px">
+    <div style="display:flex;justify-content:center;gap:12px;margin-bottom:8px;flex-wrap:wrap">
+      <div style="background:#edf2f7;padding:12px 20px;border-radius:10px;border:2px solid #a0aec0;font-size:0.7em;font-weight:600;text-align:center;min-width:120px">
+        🎙️ 会議参加者
+      </div>
+      <div style="background:#edf2f7;padding:12px 20px;border-radius:10px;border:2px solid #a0aec0;font-size:0.7em;font-weight:600;text-align:center;min-width:120px">
+        🖥️ 管理UI
+      </div>
+    </div>
+    <div style="text-align:center;font-size:1.2em;color:#a0aec0;margin:4px 0">⬇️</div>
+    <div style="display:flex;justify-content:center;gap:12px;margin-bottom:8px;flex-wrap:wrap">
+      <div style="background:#ebf8ff;padding:12px 20px;border-radius:10px;border:2px solid #4299e1;font-size:0.7em;font-weight:600;text-align:center;min-width:140px">
+        📝 Whisperアップロード
+      </div>
+      <div style="background:#fefcbf;padding:12px 20px;border-radius:10px;border:2px solid #d69e2e;font-size:0.7em;font-weight:600;text-align:center;min-width:140px">
+        ⚡ リアルタイムAPI
+      </div>
+      <div style="background:#fff5f5;padding:12px 20px;border-radius:10px;border:2px solid #fc8181;font-size:0.7em;font-weight:600;text-align:center;min-width:140px">
+        💾 ローカル録音
+      </div>
+    </div>
+    <div style="text-align:center;font-size:1.2em;color:#a0aec0;margin:4px 0">⬇️</div>
+    <div style="display:flex;justify-content:center;gap:12px;margin-bottom:8px;flex-wrap:wrap">
+      <div style="background:#faf5ff;padding:12px 20px;border-radius:10px;border:2px solid #9f7aea;font-size:0.7em;font-weight:600;text-align:center;min-width:140px">
+        🧠 要約生成
+      </div>
+      <div style="background:#f0fff4;padding:12px 20px;border-radius:10px;border:2px solid #48bb78;font-size:0.7em;font-weight:600;text-align:center;min-width:140px">
+        🔎 RAG検索・統合
+      </div>
+      <div style="background:#fffaf0;padding:12px 20px;border-radius:10px;border:2px solid #ed8936;font-size:0.7em;font-weight:600;text-align:center;min-width:140px">
+        📄 テンプレート生成
+      </div>
+    </div>
+    <div style="text-align:center;font-size:1.2em;color:#a0aec0;margin:4px 0">⬇️</div>
+    <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
+      <div style="background:#f0fff4;padding:12px 20px;border-radius:10px;border:2px solid #48bb78;font-size:0.7em;font-weight:600;text-align:center;min-width:120px">
+        📚 サマリーDB
+      </div>
+      <div style="background:#ebf8ff;padding:12px 20px;border-radius:10px;border:2px solid #4299e1;font-size:0.7em;font-weight:600;text-align:center;min-width:120px">
+        🗂️ RAGインデックス
+      </div>
+      <div style="background:#fff5f5;padding:12px 20px;border-radius:10px;border:2px solid #fc8181;font-size:0.7em;font-weight:600;text-align:center;min-width:120px">
+        🔐 認証・セキュリティ
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-background="linear-gradient(135deg, #2d3748 0%, #4a5568 100%)">
+  <h2 style="color:white;font-size:2.2em;letter-spacing:-0.01em">Success Criteria</h2>
+  <p style="color:rgba(255,255,255,0.6);font-size:0.8em;max-width:600px;margin:12px auto 0">MVPは速度・復元性・統合品質・認識精度で評価する</p>
+  <div style="width:60px;height:3px;background:#667eea;margin:24px auto 0;border-radius:2px"></div>
+</section>
+
+<section>
+  <h2>📊 受け入れ基準 KPI</h2>
+  <div style="display:flex;justify-content:center;gap:28px;margin-top:24px;flex-wrap:wrap">
+    <div style="text-align:center;min-width:150px">
+      <div style="width:100px;height:100px;border-radius:50%;background:conic-gradient(#667eea 0% 100%, #e2e8f0 100% 100%);display:flex;align-items:center;justify-content:center;margin:0 auto 10px">
+        <div style="width:74px;height:74px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:1.2em;font-weight:700;color:#667eea">1分</div>
+      </div>
+      <div style="font-size:0.72em;font-weight:700">サマリー生成</div>
+      <div style="font-size:0.6em;color:#718096">音声アップロード後</div>
+    </div>
+    <div style="text-align:center;min-width:150px">
+      <div style="width:100px;height:100px;border-radius:50%;background:conic-gradient(#48bb78 0% 100%, #e2e8f0 100% 100%);display:flex;align-items:center;justify-content:center;margin:0 auto 10px">
+        <div style="width:74px;height:74px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:1.1em;font-weight:700;color:#48bb78">3+</div>
+      </div>
+      <div style="font-size:0.72em;font-weight:700">統合対象</div>
+      <div style="font-size:0.6em;color:#718096">3回以上の会議</div>
+    </div>
+    <div style="text-align:center;min-width:150px">
+      <div style="width:100px;height:100px;border-radius:50%;background:conic-gradient(#ed8936 0% 90%, #e2e8f0 90% 100%);display:flex;align-items:center;justify-content:center;margin:0 auto 10px">
+        <div style="width:74px;height:74px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:1.2em;font-weight:700;color:#ed8936">90%</div>
+      </div>
+      <div style="font-size:0.72em;font-weight:700">ライブ字幕精度</div>
+      <div style="font-size:0.6em;color:#718096">制御下の環境</div>
+    </div>
+    <div style="text-align:center;min-width:150px">
+      <div style="width:100px;height:100px;border-radius:50%;background:conic-gradient(#fc8181 0% 100%, #e2e8f0 100% 100%);display:flex;align-items:center;justify-content:center;margin:0 auto 10px">
+        <div style="width:74px;height:74px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;font-size:1.05em;font-weight:700;color:#fc8181">100%</div>
+      </div>
+      <div style="font-size:0.72em;font-weight:700">バックアップ作成</div>
+      <div style="font-size:0.6em;color:#718096">全会議で録音保存</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px">
+    <div>
+      <div style="font-size:0.68em;font-weight:700;color:#2d3748">📄 テンプレート準拠性</div>
+      <div style="background:#e2e8f0;border-radius:8px;height:18px;width:100%;overflow:hidden;margin:6px 0">
+        <div style="background:linear-gradient(90deg,#667eea,#764ba2);height:100%;width:100%;border-radius:8px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px">
+          <span style="color:white;font-size:0.6em;font-weight:700">章構成 正常生成</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:0.68em;font-weight:700;color:#2d3748">🧠 文脈保持</div>
+      <div style="background:#e2e8f0;border-radius:8px;height:18px;width:100%;overflow:hidden;margin:6px 0">
+        <div style="background:linear-gradient(90deg,#48bb78,#38a169);height:100%;width:85%;border-radius:8px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px">
+          <span style="color:white;font-size:0.6em;font-weight:700">統合要約で担保</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>📅 MVPロードマップ</h2>
+  <div style="position:relative;margin-top:40px;padding:0 20px">
+    <div style="position:absolute;top:20px;left:40px;right:40px;height:4px;background:linear-gradient(90deg,#667eea,#48bb78,#ed8936,#e53e3e);border-radius:2px"></div>
+    <div style="display:flex;justify-content:space-between;position:relative;gap:12px;flex-wrap:wrap">
+      <div style="text-align:center;z-index:1;flex:1;min-width:120px">
+        <div style="width:44px;height:44px;border-radius:50%;background:#667eea;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;margin:0 auto;box-shadow:0 2px 8px rgba(102,126,234,0.4)">1</div>
+        <div style="font-size:0.72em;font-weight:600;margin-top:10px">音声基盤</div>
+        <div style="font-size:0.58em;color:#718096">取得 / アップロード / 保管</div>
+      </div>
+      <div style="text-align:center;z-index:1;flex:1;min-width:120px">
+        <div style="width:44px;height:44px;border-radius:50%;background:#48bb78;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;margin:0 auto;box-shadow:0 2px 8px rgba(72,187,120,0.4)">2</div>
+        <div style="font-size:0.72em;font-weight:600;margin-top:10px">Must機能</div>
+        <div style="font-size:0.58em;color:#718096">サマリー / 統合 / 資料生成</div>
+      </div>
+      <div style="text-align:center;z-index:1;flex:1;min-width:120px">
+        <div style="width:44px;height:44px;border-radius:50%;background:#ed8936;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;margin:0 auto;box-shadow:0 2px 8px rgba(237,137,54,0.4)">3</div>
+        <div style="font-size:0.72em;font-weight:600;margin-top:10px">Should検証</div>
+        <div style="font-size:0.58em;color:#718096">字幕精度 / APIコスト</div>
+      </div>
+      <div style="text-align:center;z-index:1;flex:1;min-width:120px">
+        <div style="width:44px;height:44px;border-radius:50%;background:#e53e3e;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;margin:0 auto;box-shadow:0 2px 8px rgba(229,62,62,0.4)">4</div>
+        <div style="font-size:0.72em;font-weight:600;margin-top:10px">Phase 2候補</div>
+        <div style="font-size:0.58em;color:#718096">外部連携 / 会議ツール連携</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-background="linear-gradient(135deg, #2d3748 0%, #4a5568 100%)">
+  <h2 style="color:white;font-size:2.2em;letter-spacing:-0.01em">Dependencies & Risks</h2>
+  <p style="color:rgba(255,255,255,0.6);font-size:0.8em;max-width:600px;margin:12px auto 0">実装可否は外部API・RAG基盤・テンプレート資産・セキュリティ整備に依存</p>
+  <div style="width:60px;height:3px;background:#667eea;margin:24px auto 0;border-radius:2px"></div>
+</section>
+
+<section>
+  <h2>🔗 主要依存関係マップ</h2>
+  <div style="display:grid;grid-template-columns:1fr 80px 1fr;gap:12px;align-items:center;margin-top:20px">
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:18px">
+      <div style="font-size:0.8em;font-weight:700;margin-bottom:12px">🎯 提供機能</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:#eef2ff;padding:12px;border-radius:10px;font-size:0.66em;text-align:center">会議サマリー</div>
+        <div style="background:#f0fff4;padding:12px;border-radius:10px;font-size:0.66em;text-align:center">RAG統合</div>
+        <div style="background:#fffaf0;padding:12px;border-radius:10px;font-size:0.66em;text-align:center">資料生成</div>
+        <div style="background:#fff5f5;padding:12px;border-radius:10px;font-size:0.66em;text-align:center">ライブ字幕</div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:2em;color:#667eea">⟶</div>
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:18px">
+      <div style="font-size:0.8em;font-weight:700;margin-bottom:12px">🧩 必須基盤</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:#ebf8ff;padding:12px;border-radius:10px;font-size:0.66em;text-align:center">Whisper</div>
+        <div style="background:#fefcbf;padding:12px;border-radius:10px;font-size:0.66em;text-align:center">Realtime API</div>
+        <div style="background:#edf2f7;padding:12px;border-radius:10px;font-size:0.66em;text-align:center">ローカル保存対応マイク</div>
+        <div style="background:#faf5ff;padding:12px;border-radius:10px;font-size:0.66em;text-align:center">RAG保存先 / 検索基盤</div>
+        <div style="background:#f0fff4;padding:12px;border-radius:10px;font-size:0.66em;text-align:center">テンプレートライブラリ</div>
+        <div style="background:#fff5f5;padding:12px;border-radius:10px;font-size:0.66em;text-align:center">認証・セキュリティ</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>⚠️ リスク評価</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px">
+    <div class="fragment" style="background:#fff5f5;padding:16px;border-radius:12px;border-left:5px solid #fc8181;text-align:left">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong style="color:#c53030;font-size:0.8em">音声キャプチャ失敗</strong>
+        <span style="background:#fc8181;color:white;padding:2px 10px;border-radius:10px;font-size:0.6em;font-weight:600">HIGH</span>
+      </div>
+      <p style="font-size:0.65em;margin:0 0 8px 0;color:#4a5568">会議記録欠損の直接要因</p>
+      <div style="background:rgba(72,187,120,0.1);padding:6px 10px;border-radius:6px;font-size:0.6em;color:#276749">💡 Mitigation: ローカル録音を全会議で必須化</div>
+    </div>
+    <div class="fragment" style="background:#fffaf0;padding:16px;border-radius:12px;border-left:5px solid #ed8936;text-align:left">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong style="color:#c05621;font-size:0.8em">リアルタイムAPI費用</strong>
+        <span style="background:#ed8936;color:white;padding:2px 10px;border-radius:10px;font-size:0.6em;font-weight:600">MED</span>
+      </div>
+      <p style="font-size:0.65em;margin:0 0 8px 0;color:#4a5568">継続利用の採算性が未確定</p>
+      <div style="background:rgba(72,187,120,0.1);padding:6px 10px;border-radius:6px;font-size:0.6em;color:#276749">💡 Mitigation: Whisper方式と選択可能にする</div>
+    </div>
+    <div class="fragment" style="background:#fffaf0;padding:16px;border-radius:12px;border-left:5px solid #ed8936;text-align:left">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong style="color:#c05621;font-size:0.8em">RAG基盤未決定</strong>
+        <span style="background:#ed8936;color:white;padding:2px 10px;border-radius:10px;font-size:0.6em;font-weight:600">MED</span>
+      </div>
+      <p style="font-size:0.65em;margin:0 0 8px 0;color:#4a5568">保存先・検索性能要件が未整理</p>
+      <div style="background:rgba(72,187,120,0.1);padding:6px 10px;border-radius:6px;font-size:0.6em;color:#276749">💡 Mitigation: クラウド / オンプレ比較で先行評価</div>
+    </div>
+    <div class="fragment" style="background:#f7fafc;padding:16px;border-radius:12px;border-left:5px solid #a0aec0;text-align:left">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong style="color:#4a5568;font-size:0.8em">テンプレート資産不足</strong>
+        <span style="background:#a0aec0;color:white;padding:2px 10px;border-radius:10px;font-size:0.6em;font-weight:600">LOW</span>
+      </div>
+      <p style="font-size:0.65em;margin:0 0 8px 0;color:#4a5568">資料品質にばらつきが出る可能性</p>
+      <div style="background:rgba(72,187,120,0.1);padding:6px 10px;border-radius:6px;font-size:0.6em;color:#276749">💡 Mitigation: MVPでは標準テンプレを固定</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>⭕ スコープ境界</h2>
+  <div style="display:flex;align-items:center;justify-content:center;margin:20px auto">
+    <div style="width:260px;height:260px;border-radius:50%;background:rgba(102,126,234,0.08);border:2px solid #667eea;display:flex;align-items:center;justify-content:center;position:relative">
+      <div style="position:absolute;top:10px;font-size:0.62em;color:#667eea;font-weight:700">Phase 2 / Out of Scope</div>
+      <div style="position:absolute;left:20px;top:58px;font-size:0.58em;color:#4a5568">Zoom / Teams連携</div>
+      <div style="position:absolute;right:20px;top:94px;font-size:0.58em;color:#4a5568">EC / チケット連携</div>
+      <div style="position:absolute;left:30px;bottom:70px;font-size:0.58em;color:#4a5568">承認WF・監査ログ</div>
+      <div style="width:170px;height:170px;border-radius:50%;background:rgba(102,126,234,0.15);border:2px solid #667eea;display:flex;align-items:center;justify-content:center;position:relative">
+        <div style="position:absolute;top:12px;font-size:0.62em;color:#667eea;font-weight:700">MVP Scope</div>
+        <div style="width:92px;height:92px;border-radius:50%;background:#667eea;color:white;display:flex;align-items:center;justify-content:center;font-size:0.7em;font-weight:700;text-align:center;padding:10px">音声要約<br>RAG統合<br>資料生成</div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:center;gap:18px;margin-top:10px;flex-wrap:wrap">
+    <div style="background:#eef2ff;padding:10px 16px;border-radius:20px;font-size:0.64em">✅ MVP: 会議記録の生成と統合</div>
+    <div style="background:#fff5f5;padding:10px 16px;border-radius:20px;font-size:0.64em">🚫 初期除外: 連携・統制機能の本格整備</div>
+  </div>
+</section>
+
+<section>
+  <h2>❓ 未解決事項の整理</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;margin-top:20px">
+    <div>
+      <div style="display:grid;grid-template-columns:1fr;gap:10px">
+        <div style="background:#fffaf0;padding:14px;border-radius:12px;border-left:5px solid #ed8936">
+          <div style="font-size:0.76em;font-weight:700">💰 コスト・予算</div>
+          <div style="font-size:0.63em;color:#4a5568;margin-top:4px">Realtime API許容額 / 会議数 / 録音時間</div>
+        </div>
+        <div style="background:#faf5ff;padding:14px;border-radius:12px;border-left:5px solid #764ba2">
+          <div style="font-size:0.76em;font-weight:700">🧠 RAG要件</div>
+          <div style="font-size:0.63em;color:#4a5568;margin-top:4px">保存先 / 検索基盤 / 出力粒度 / 期間指定</div>
+        </div>
+        <div style="background:#ebf8ff;padding:14px;border-radius:12px;border-left:5px solid #4299e1">
+          <div style="font-size:0.76em;font-weight:700">🌐 言語・辞書</div>
+          <div style="font-size:0.63em;color:#4a5568;margin-top:4px">対応言語 / 専門用語辞書の必要性</div>
+        </div>
+        <div style="background:#f0fff4;padding:14px;border-radius:12px;border-left:5px solid #48bb78">
+          <div style="font-size:0.76em;font-weight:700">📄 テンプレート資産</div>
+          <div style="font-size:0.63em;color:#4a5568;margin-top:4px">既存テンプレ有無 / フォーマット要件</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="display:grid;grid-template-columns:40px 1fr 1fr;grid-template-rows:auto 1fr 1fr;gap:2px;max-width:500px;margin-left:auto;margin-right:auto">
+        <div></div>
+        <div style="text-align:center;font-size:0.65em;font-weight:600;padding:4px;color:#718096">低工数</div>
+        <div style="text-align:center;font-size:0.65em;font-weight:600;padding:4px;color:#718096">高工数</div>
+        <div style="writing-mode:vertical-lr;transform:rotate(180deg);text-align:center;font-size:0.65em;font-weight:600;color:#718096">高影響</div>
+        <div style="background:#c6f6d5;padding:14px;border-radius:10px 0 0 0;text-align:center;font-size:0.66em">✅ 成功指標定義</div>
+        <div style="background:#fefcbf;padding:14px;border-radius:0 10px 0 0;text-align:center;font-size:0.66em">🎯 API費用 / RAG要件</div>
+        <div style="writing-mode:vertical-lr;transform:rotate(180deg);text-align:center;font-size:0.65em;font-weight:600;color:#718096">低影響</div>
+        <div style="background:#fed7d7;padding:14px;border-radius:0 0 0 10px;text-align:center;font-size:0.66em">⚡ 既存テンプレ棚卸し</div>
+        <div style="background:#e2e8f0;padding:14px;border-radius:0 0 10px 0;text-align:center;font-size:0.66em">❌ 詳細運用後回し</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-background="linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)">
+  <h2 style="color:white;font-size:2em;margin-bottom:24px">🚀 Next Steps</h2>
+  <div style="max-width:640px;margin:0 auto">
+    <div class="fragment" style="background:rgba(255,255,255,0.08);backdrop-filter:blur(4px);padding:14px 24px;border-radius:12px;margin-bottom:10px;display:flex;align-items:center;gap:16px;border:1px solid rgba(255,255,255,0.1)">
+      <div style="width:32px;height:32px;border-radius:50%;background:#667eea;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8em;flex-shrink:0">1</div>
+      <span style="color:rgba(255,255,255,0.9);font-size:0.8em">Must 5機能をMVP確定し、受け入れ基準をテスト項目へ落とし込む</span>
+    </div>
+    <div class="fragment" style="background:rgba(255,255,255,0.08);backdrop-filter:blur(4px);padding:14px 24px;border-radius:12px;margin-bottom:10px;display:flex;align-items:center;gap:16px;border:1px solid rgba(255,255,255,0.1)">
+      <div style="width:32px;height:32px;border-radius:50%;background:#48bb78;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8em;flex-shrink:0">2</div>
+      <span style="color:rgba(255,255,255,0.9);font-size:0.8em">Realtime API費用とRAG保存先の調査を先行実施する</span>
+    </div>
+    <div class="fragment" style="background:rgba(255,255,255,0.08);backdrop-filter:blur(4px);padding:14px 24px;border-radius:12px;margin-bottom:10px;display:flex;align-items:center;gap:16px;border:1px solid rgba(255,255,255,0.1)">
+      <div style="width:32px;height:32px;border-radius:50%;background:#ed8936;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8em;flex-shrink:0">3</div>
+      <span style="color:rgba(255,255,255,0.9);font-size:0.8em">標準テンプレートと成功指標を定義し、PoC計画を承認へ進める</span>
+    </div>
+  </div>
+</section>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.min.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true, transition: 'slide', width: 960, height: 700, margin: 0.04,
+    slideNumber: true, controls: true, progress: true, center: true
+  });
+</script>
+</body>
+</html>

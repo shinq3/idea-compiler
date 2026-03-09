@@ -1,4 +1,6 @@
-import PptxGenJS from "pptxgenjs";
+import PptxGenJSModule from "pptxgenjs";
+
+const PptxGenJS = (PptxGenJSModule as any).default || PptxGenJSModule;
 
 interface ParsedSlide {
   background?: string;

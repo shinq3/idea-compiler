@@ -104,8 +104,11 @@ export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
 
       if (!doc.slidesHtml) {
         const genRes = await apiRequest("POST", `/api/documents/${doc.id}/slides`, { locale });
-        if (!genRes.ok) throw new Error("Slide generation failed");
-        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/documents`] });
+        if (!genRes.ok) {
+          const errData = await genRes.json().catch(() => ({ message: "Slide generation failed" }));
+          throw new Error(errData.message || "Slide generation failed");
+        }
+        await queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/documents`] });
       }
 
       const res = await fetch(`/api/documents/${doc.id}/${format}`, {
