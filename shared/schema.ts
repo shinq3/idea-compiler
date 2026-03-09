@@ -85,6 +85,7 @@ export const documents = pgTable("documents", {
   type: text("type").notNull(),
   contentMd: text("content_md").notNull(),
   contentJson: jsonb("content_json"),
+  slidesHtml: text("slides_html"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 

@@ -4,14 +4,56 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
 import { PDFParse, VerbosityLevel } from "pdf-parse";
 import { storage } from "./storage";
+import { db } from "./db";
+import { documents as documentsTable } from "@shared/schema";
 import { extractStructuredData, generateSummary, generateDocument, generateSlides, transcribeAudio, translateInputText } from "./openai";
 import { requireAuth, requireRole, requireProjectAccess, hashPassword, verifyPassword, generateToken } from "./auth";
+import { generatePptxBuffer } from "./pptx";
 
 const uploadDir = path.resolve("uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const docsOutputDir = path.resolve("documents");
+if (!fs.existsSync(docsOutputDir)) {
+  fs.mkdirSync(docsOutputDir, { recursive: true });
+}
+
+function buildRevealHtml(slidesHtml: string, title: string): string {
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${title}</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.min.css">
+<style>
+  body { margin: 0; }
+  .reveal { font-family: 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif; }
+  .reveal h1, .reveal h2, .reveal h3, .reveal h4 { font-family: inherit; }
+  .reveal section { padding: 20px 40px; }
+</style>
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+    ${slidesHtml}
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.min.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true, transition: 'slide', width: 960, height: 700, margin: 0.04,
+    slideNumber: true, controls: true, progress: true, center: true
+  });
+</script>
+</body>
+</html>`;
 }
 
 const ALLOWED_EXTENSIONS = [".pdf", ".txt", ".md"];
@@ -1002,7 +1044,107 @@ export async function registerRoutes(
 
       const cleanHtml = slidesHtml.replace(/^```html?\s*/i, "").replace(/```\s*$/, "").trim();
 
+      await db.update(documentsTable).set({ slidesHtml: cleanHtml }).where(eq(documentsTable.id, docId));
+
+      const fileBase = `doc-${docId}-${doc.type}`;
+      const htmlFullPage = buildRevealHtml(cleanHtml, doc.type === "kickoff" ? "Kickoff Document" : "Feature Proposal");
+      fs.writeFileSync(path.join(docsOutputDir, `${fileBase}.html`), htmlFullPage, "utf-8");
+
+      try {
+        const pptxBuf = await generatePptxBuffer(cleanHtml, doc.type === "kickoff" ? "Kickoff Document" : "Feature Proposal");
+        fs.writeFileSync(path.join(docsOutputDir, `${fileBase}.pptx`), pptxBuf);
+      } catch (pptxErr: any) {
+        console.error("[slides] PPTX pre-generation failed (non-fatal):", pptxErr.message);
+      }
+
       res.json({ slidesHtml: cleanHtml });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/documents/:id/pptx", requireAuth, async (req, res) => {
+    try {
+      const docId = Number(req.params.id);
+      const doc = await storage.getDocument(docId);
+      if (!doc) return res.status(404).json({ message: "Document not found" });
+
+      if (!doc.slidesHtml) {
+        return res.status(400).json({ message: "No slides generated yet. Generate slides first." });
+      }
+
+      const project = await storage.getProject(doc.projectId);
+      if (!project) return res.status(404).json({ message: "Project not found" });
+      if (req.user!.role !== "system_admin") {
+        if (req.user!.role === "org_admin" || req.user!.role === "pm") {
+          if (project.organizationId !== req.user!.organizationId) {
+            return res.status(403).json({ message: "Access denied" });
+          }
+        } else if (req.user!.role === "member") {
+          const members = await storage.getProjectMembers(doc.projectId);
+          if (!members.some((m) => m.userId === req.user!.id)) {
+            return res.status(403).json({ message: "Access denied" });
+          }
+        }
+      }
+
+      const fileBase = `doc-${docId}-${doc.type}`;
+      const pptxPath = path.join(docsOutputDir, `${fileBase}.pptx`);
+      const filename = `${doc.type === "kickoff" ? "kickoff" : "feature-proposal"}-slides.pptx`;
+
+      if (!fs.existsSync(pptxPath)) {
+        const title = doc.type === "kickoff" ? "Kickoff Document" : "Feature Proposal";
+        const buffer = await generatePptxBuffer(doc.slidesHtml, title);
+        fs.writeFileSync(pptxPath, buffer);
+      }
+
+      res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.presentationml.presentation");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.sendFile(pptxPath);
+    } catch (error: any) {
+      console.error("[pptx] Generation error:", error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/documents/:id/slides-html", requireAuth, async (req, res) => {
+    try {
+      const docId = Number(req.params.id);
+      const doc = await storage.getDocument(docId);
+      if (!doc) return res.status(404).json({ message: "Document not found" });
+
+      if (!doc.slidesHtml) {
+        return res.status(400).json({ message: "No slides generated yet." });
+      }
+
+      const project = await storage.getProject(doc.projectId);
+      if (!project) return res.status(404).json({ message: "Project not found" });
+      if (req.user!.role !== "system_admin") {
+        if (req.user!.role === "org_admin" || req.user!.role === "pm") {
+          if (project.organizationId !== req.user!.organizationId) {
+            return res.status(403).json({ message: "Access denied" });
+          }
+        } else if (req.user!.role === "member") {
+          const members = await storage.getProjectMembers(doc.projectId);
+          if (!members.some((m) => m.userId === req.user!.id)) {
+            return res.status(403).json({ message: "Access denied" });
+          }
+        }
+      }
+
+      const fileBase = `doc-${docId}-${doc.type}`;
+      const htmlPath = path.join(docsOutputDir, `${fileBase}.html`);
+
+      if (!fs.existsSync(htmlPath)) {
+        const title = doc.type === "kickoff" ? "Kickoff Document" : "Feature Proposal";
+        const htmlFullPage = buildRevealHtml(doc.slidesHtml, title);
+        fs.writeFileSync(htmlPath, htmlFullPage, "utf-8");
+      }
+
+      const filename = `${doc.type === "kickoff" ? "kickoff" : "feature-proposal"}-slides.html`;
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.sendFile(htmlPath);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

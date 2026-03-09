@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Download, Maximize2, Minimize2 } from "lucide-react";
+import { Download, Maximize2, Minimize2, FileDown, Loader2 } from "lucide-react";
+import { getToken } from "@/lib/auth";
 
 interface SlideViewerProps {
   open: boolean;
   onClose: () => void;
   slidesHtml: string;
   title: string;
+  documentId?: number;
 }
 
 function buildPreviewHtml(slidesHtml: string, title: string): string {
@@ -129,16 +131,17 @@ function buildDownloadHtml(slidesHtml: string, title: string): string {
 </html>`;
 }
 
-export function SlideViewer({ open, onClose, slidesHtml, title }: SlideViewerProps) {
+export function SlideViewer({ open, onClose, slidesHtml, title, documentId }: SlideViewerProps) {
   const { t } = useI18n();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [pptxLoading, setPptxLoading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const previewHtml = buildPreviewHtml(slidesHtml, title);
   const downloadHtml = buildDownloadHtml(slidesHtml, title);
 
-  const handleDownload = () => {
+  const handleDownloadHtml = () => {
     const blob = new Blob([downloadHtml], { type: "text/html" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -146,6 +149,29 @@ export function SlideViewer({ open, onClose, slidesHtml, title }: SlideViewerPro
     a.download = `${title.replace(/\s+/g, "-").toLowerCase()}-slides.html`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPptx = async () => {
+    if (!documentId) return;
+    setPptxLoading(true);
+    try {
+      const token = getToken();
+      const res = await fetch(`/api/documents/${documentId}/pptx`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("PPTX generation failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${title.replace(/\s+/g, "-").toLowerCase()}-slides.pptx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("PPTX download error:", e);
+    } finally {
+      setPptxLoading(false);
+    }
   };
 
   const toggleFullscreen = () => {
@@ -183,12 +209,28 @@ export function SlideViewer({ open, onClose, slidesHtml, title }: SlideViewerPro
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleDownload}
-                data-testid="button-slides-download"
+                onClick={handleDownloadHtml}
+                data-testid="button-slides-download-html"
               >
                 <Download className="w-4 h-4 mr-1" />
                 HTML
               </Button>
+              {documentId && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDownloadPptx}
+                  disabled={pptxLoading}
+                  data-testid="button-slides-download-pptx"
+                >
+                  {pptxLoading ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <FileDown className="w-4 h-4 mr-1" />
+                  )}
+                  PPTX
+                </Button>
+              )}
             </div>
           </div>
         </DialogHeader>
