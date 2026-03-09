@@ -253,6 +253,8 @@
     "documentGenerated": "Document generated successfully",
     "documentDeleted": "Document deleted",
     "generateSlides": "Generate Slides",
+    "slidesReady": "Slides ready",
+    "previewSlides": "Preview",
     "slidesNavHint": "Use arrow keys or swipe to navigate slides"
   },
   "confidence": {

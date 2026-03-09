@@ -253,6 +253,8 @@
     "documentGenerated": "ドキュメントを生成しました",
     "documentDeleted": "ドキュメントを削除しました",
     "generateSlides": "スライド生成",
+    "slidesReady": "スライド準備完了",
+    "previewSlides": "プレビュー",
     "slidesNavHint": "矢印キーまたはスワイプでスライドを操作できます"
   },
   "confidence": {

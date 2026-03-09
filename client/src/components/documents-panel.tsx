@@ -92,13 +92,23 @@ export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
 
   const handlePreviewSavedSlides = (doc: Document) => {
     const title = doc.type === "kickoff" ? t("documents.kickoffDocument") : t("documents.featureProposal");
-    setSlidesData({ html: (doc as any).slidesHtml, title, documentId: doc.id });
+    setSlidesData({ html: doc.slidesHtml!, title, documentId: doc.id });
   };
 
-  const handleDownloadFile = async (docId: number, format: "pptx" | "slides-html", docType: string) => {
+  const [downloadingFormat, setDownloadingFormat] = useState<{ docId: number; format: string } | null>(null);
+
+  const handleDownloadFile = async (doc: Document, format: "pptx" | "slides-html") => {
+    setDownloadingFormat({ docId: doc.id, format });
     try {
       const token = getToken();
-      const res = await fetch(`/api/documents/${docId}/${format}`, {
+
+      if (!doc.slidesHtml) {
+        const genRes = await apiRequest("POST", `/api/documents/${doc.id}/slides`, { locale });
+        if (!genRes.ok) throw new Error("Slide generation failed");
+        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/documents`] });
+      }
+
+      const res = await fetch(`/api/documents/${doc.id}/${format}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Download failed");
@@ -107,11 +117,13 @@ export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
       const a = document.createElement("a");
       a.href = url;
       const ext = format === "pptx" ? "pptx" : "html";
-      a.download = `${docType === "kickoff" ? "kickoff" : "feature-proposal"}-slides.${ext}`;
+      a.download = `${doc.type === "kickoff" ? "kickoff" : "feature-proposal"}-slides.${ext}`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e: any) {
       toast({ title: t("common.error"), description: e.message, variant: "destructive" });
+    } finally {
+      setDownloadingFormat(null);
     }
   };
 
@@ -158,7 +170,7 @@ export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
       ) : documents && documents.length > 0 ? (
         <div className="space-y-3">
           {documents.map((doc) => {
-            const hasSlides = !!(doc as any).slidesHtml;
+            const hasSlides = !!doc.slidesHtml;
             return (
               <Card key={doc.id} className="p-4" data-testid={`card-document-${doc.id}`}>
                 <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -212,6 +224,34 @@ export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
                     </Button>
                     <Button
                       variant="ghost"
+                      size="sm"
+                      onClick={() => handleDownloadFile(doc, "slides-html")}
+                      disabled={downloadingFormat?.docId === doc.id && downloadingFormat?.format === "slides-html"}
+                      data-testid={`button-download-slides-html-${doc.id}`}
+                    >
+                      {downloadingFormat?.docId === doc.id && downloadingFormat?.format === "slides-html" ? (
+                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      ) : (
+                        <Download className="w-3 h-3 mr-1" />
+                      )}
+                      HTML
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDownloadFile(doc, "pptx")}
+                      disabled={downloadingFormat?.docId === doc.id && downloadingFormat?.format === "pptx"}
+                      data-testid={`button-download-slides-pptx-${doc.id}`}
+                    >
+                      {downloadingFormat?.docId === doc.id && downloadingFormat?.format === "pptx" ? (
+                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      ) : (
+                        <FileDown className="w-3 h-3 mr-1" />
+                      )}
+                      PPTX
+                    </Button>
+                    <Button
+                      variant="ghost"
                       size="icon"
                       onClick={() => deleteMutation.mutate(doc.id)}
                       data-testid={`button-delete-doc-${doc.id}`}
@@ -234,24 +274,6 @@ export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
                     >
                       <Eye className="w-3 h-3 mr-1" />
                       {t("documents.previewSlides")}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownloadFile(doc.id, "slides-html", doc.type)}
-                      data-testid={`button-download-slides-html-${doc.id}`}
-                    >
-                      <Download className="w-3 h-3 mr-1" />
-                      HTML
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownloadFile(doc.id, "pptx", doc.type)}
-                      data-testid={`button-download-slides-pptx-${doc.id}`}
-                    >
-                      <FileDown className="w-3 h-3 mr-1" />
-                      PPTX
                     </Button>
                   </div>
                 )}
