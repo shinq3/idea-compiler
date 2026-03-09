@@ -245,6 +245,15 @@ export async function generatePptxBuffer(slidesHtml: string, title: string): Pro
     }
   }
 
-  const buffer = await pptx.write({ outputType: "nodebuffer" });
-  return buffer as Buffer;
+  const result = await pptx.write({ outputType: "nodebuffer" });
+  if (Buffer.isBuffer(result)) {
+    return result;
+  }
+  if (result instanceof ArrayBuffer) {
+    return Buffer.from(result);
+  }
+  if (result instanceof Uint8Array) {
+    return Buffer.from(result.buffer, result.byteOffset, result.byteLength);
+  }
+  return Buffer.from(result as any);
 }

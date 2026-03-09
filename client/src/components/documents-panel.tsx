@@ -114,15 +114,24 @@ export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
       const res = await fetch(`/api/documents/${doc.id}/${format}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Download failed");
-      const blob = await res.blob();
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({ message: "Download failed" }));
+        throw new Error(errData.message || "Download failed");
+      }
+      const arrayBuffer = await res.arrayBuffer();
+      const ext = format === "pptx" ? "pptx" : "html";
+      const mimeType = format === "pptx"
+        ? "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        : "text/html";
+      const blob = new Blob([arrayBuffer], { type: mimeType });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const ext = format === "pptx" ? "pptx" : "html";
       a.download = `${doc.type === "kickoff" ? "kickoff" : "feature-proposal"}-slides.${ext}`;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (e: any) {
       toast({ title: t("common.error"), description: e.message, variant: "destructive" });
     } finally {

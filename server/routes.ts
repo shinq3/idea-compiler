@@ -1141,15 +1141,19 @@ export async function registerRoutes(
       const pptxPath = path.join(docsOutputDir, `${fileBase}.pptx`);
       const filename = `${doc.type === "kickoff" ? "kickoff" : "feature-proposal"}-slides.pptx`;
 
-      if (!fs.existsSync(pptxPath)) {
+      let pptxBuffer: Buffer;
+      if (fs.existsSync(pptxPath)) {
+        pptxBuffer = fs.readFileSync(pptxPath);
+      } else {
         const title = doc.type === "kickoff" ? "Kickoff Document" : "Feature Proposal";
-        const buffer = await generatePptxBuffer(doc.slidesHtml, title);
-        fs.writeFileSync(pptxPath, buffer);
+        pptxBuffer = await generatePptxBuffer(doc.slidesHtml, title);
+        fs.writeFileSync(pptxPath, pptxBuffer);
       }
 
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.presentationml.presentation");
       res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-      res.sendFile(pptxPath);
+      res.setHeader("Content-Length", pptxBuffer.length);
+      res.end(pptxBuffer);
     } catch (error: any) {
       console.error("[pptx] Generation error:", error);
       res.status(500).json({ message: error.message });

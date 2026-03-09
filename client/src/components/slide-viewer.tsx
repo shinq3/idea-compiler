@@ -160,13 +160,18 @@ export function SlideViewer({ open, onClose, slidesHtml, title, documentId }: Sl
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("PPTX generation failed");
-      const blob = await res.blob();
+      const arrayBuffer = await res.arrayBuffer();
+      const blob = new Blob([arrayBuffer], {
+        type: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = `${title.replace(/\s+/g, "-").toLowerCase()}-slides.pptx`;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (e) {
       console.error("PPTX download error:", e);
     } finally {
