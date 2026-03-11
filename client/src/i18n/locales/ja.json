@@ -19,7 +19,9 @@
     "version": "バージョン",
     "meetings": "会議",
     "owner": "担当者",
-    "save": "保存"
+    "save": "保存",
+    "expand": "もっと見る",
+    "collapse": "閉じる"
   },
   "nav": {
     "backToDashboard": "ダッシュボードに戻る",

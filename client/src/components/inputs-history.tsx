@@ -13,7 +13,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FileText, MessageSquare, File, Clock, Pencil, Trash2, Save, X, RefreshCw, Loader2, Upload } from "lucide-react";
+import { FileText, MessageSquare, File, Clock, Pencil, Trash2, Save, X, RefreshCw, Loader2, Upload, ChevronDown, ChevronUp } from "lucide-react";
 import { pickLang, type Input } from "@shared/schema";
 
 const typeIcons: Record<string, any> = {
@@ -44,6 +44,16 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
   const [editText, setEditText] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Input | null>(null);
   const [reuploadingId, setReuploadingId] = useState<number | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
+
+  const toggleExpand = (id: number) => {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
   const fileInputRef = useState<Record<number, HTMLInputElement | null>>(() => ({}))[0];
 
   const canManage = user && ["system_admin", "org_admin", "pm"].includes(user.role);
@@ -199,7 +209,7 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
           </Button>
         </div>
       )}
-      <ScrollArea className="max-h-[500px]">
+      <ScrollArea className="max-h-[70vh]">
         <div className="space-y-3 pr-3">
           {inputs.map((input) => {
             const Icon = typeIcons[input.type] || File;
@@ -314,10 +324,27 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground line-clamp-3">
-                    {displayText.substring(0, 300)}
-                    {displayText.length > 300 && "..."}
-                  </p>
+                  <div>
+                    <p className={`text-sm text-muted-foreground whitespace-pre-wrap ${expandedIds.has(input.id) ? "" : "line-clamp-4"}`}>
+                      {expandedIds.has(input.id) ? displayText : displayText.substring(0, 500)}
+                      {!expandedIds.has(input.id) && displayText.length > 500 && "..."}
+                    </p>
+                    {displayText.length > 200 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-1 h-6 px-2 text-xs text-primary"
+                        onClick={() => toggleExpand(input.id)}
+                        data-testid={`button-toggle-input-${input.id}`}
+                      >
+                        {expandedIds.has(input.id) ? (
+                          <><ChevronUp className="w-3 h-3 mr-1" />{t("common.collapse")}</>
+                        ) : (
+                          <><ChevronDown className="w-3 h-3 mr-1" />{t("common.expand")}</>
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 )}
               </div>
             );

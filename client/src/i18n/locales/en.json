@@ -19,7 +19,9 @@
     "version": "Version",
     "meetings": "meetings",
     "owner": "Owner",
-    "save": "Save"
+    "save": "Save",
+    "expand": "Show more",
+    "collapse": "Show less"
   },
   "nav": {
     "backToDashboard": "Back to Dashboard",

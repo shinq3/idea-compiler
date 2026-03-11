@@ -19,7 +19,9 @@
     "version": "Phien ban",
     "meetings": "cuoc hop",
     "owner": "Nguoi phu trach",
-    "save": "Luu"
+    "save": "Luu",
+    "expand": "Xem thêm",
+    "collapse": "Thu gọn"
   },
   "nav": {
     "backToDashboard": "Quay lai Bang dieu khien",
