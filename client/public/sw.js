@@ -1,4 +1,4 @@
-const CACHE_NAME = "ideacompiler-v2";
+const CACHE_NAME = "ideacompiler-v3";
 const PRECACHE_URLS = ["/", "/manifest.json"];
 
 self.addEventListener("install", (event) => {

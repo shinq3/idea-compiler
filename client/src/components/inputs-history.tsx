@@ -40,6 +40,10 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  useState(() => {
+    queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/inputs`] });
+  });
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editText, setEditText] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Input | null>(null);
