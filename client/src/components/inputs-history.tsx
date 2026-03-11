@@ -60,6 +60,8 @@ export function InputsHistory({ projectId }: InputsHistoryProps) {
 
   const { data: inputs, isLoading } = useQuery<Input[]>({
     queryKey: [`/api/projects/${projectId}/inputs`],
+    refetchInterval: 10000,
+    staleTime: 5000,
   });
 
   const hasFailedInputs = inputs?.some((i) => i.rawText?.startsWith("[")) ?? false;

@@ -248,12 +248,13 @@ export function InputPanel({ projectId }: InputPanelProps) {
       setDialogOpen(true);
       setErrorMessage("");
 
+      invalidateAll();
+
       if (data.taskKey) {
         taskKeyRef.current = data.taskKey;
         startPolling(data.taskKey);
       } else {
         setProcessingState("done");
-        invalidateAll();
       }
     },
     onError: (err) => {
