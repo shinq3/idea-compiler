@@ -149,6 +149,87 @@ function stripPassword(user: any) {
   return rest;
 }
 
+const URL_REGEX = /https?:\/\/[^\s<>"'）】」\]]+/gi;
+
+async function fetchUrlContent(url: string): Promise<string> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; IdeaCompiler/1.0)",
+        "Accept": "text/html,application/xhtml+xml,text/plain,*/*",
+        "Accept-Language": "ja,en;q=0.9",
+      },
+      redirect: "follow",
+    });
+    clearTimeout(timeout);
+
+    if (!res.ok) return `[URL fetch failed: ${res.status} ${res.statusText}]`;
+
+    const contentType = res.headers.get("content-type") || "";
+    if (!contentType.includes("text/html") && !contentType.includes("text/plain") && !contentType.includes("application/xhtml")) {
+      return `[Unsupported content type: ${contentType}]`;
+    }
+
+    const html = await res.text();
+
+    const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    const title = titleMatch ? titleMatch[1].replace(/\s+/g, " ").trim() : "";
+
+    const metaDescMatch = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([\s\S]*?)["']/i)
+      || html.match(/<meta[^>]*content=["']([\s\S]*?)["'][^>]*name=["']description["']/i);
+    const metaDesc = metaDescMatch ? metaDescMatch[1].trim() : "";
+
+    let body = html
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[\s\S]*?<\/style>/gi, "")
+      .replace(/<nav[\s\S]*?<\/nav>/gi, "")
+      .replace(/<footer[\s\S]*?<\/footer>/gi, "")
+      .replace(/<header[\s\S]*?<\/header>/gi, "")
+      .replace(/<!--[\s\S]*?-->/g, "")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&amp;/gi, "&")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    body = body.substring(0, 6000);
+
+    const parts: string[] = [];
+    parts.push(`[URL: ${url}]`);
+    if (title) parts.push(`Title: ${title}`);
+    if (metaDesc) parts.push(`Description: ${metaDesc}`);
+    if (body) parts.push(`Content:\n${body}`);
+
+    return parts.join("\n");
+  } catch (err: any) {
+    if (err.name === "AbortError") return `[URL fetch timeout: ${url}]`;
+    return `[URL fetch error: ${err.message}]`;
+  }
+}
+
+async function enrichTextWithUrls(text: string): Promise<string> {
+  const urls = text.match(URL_REGEX);
+  if (!urls || urls.length === 0) return text;
+
+  const uniqueUrls = [...new Set(urls)].slice(0, 5);
+  const fetches = await Promise.all(uniqueUrls.map((u) => fetchUrlContent(u)));
+
+  let enriched = text;
+  enriched += "\n\n--- Referenced URL Contents ---\n";
+  for (let i = 0; i < uniqueUrls.length; i++) {
+    enriched += `\n${fetches[i]}\n`;
+  }
+
+  return enriched;
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -220,10 +301,11 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Please provide at least 10 characters of text." });
       }
       const truncated = text.substring(0, 8000);
-      const structured = await extractStructuredData(truncated);
+      const enriched = await enrichTextWithUrls(truncated);
+      const structured = await extractStructuredData(enriched);
       const summaryJson = await generateSummary(
         null,
-        [truncated],
+        [enriched],
         structured.items.map((item) => ({ category: item.category, valueJson: item.value }))
       );
       let budgetMin: number | null = null;
@@ -845,19 +927,30 @@ export async function registerRoutes(
           await storage.incrementMeetingCount(projectId);
         }
 
+        const originalText = req.body.rawText.trim();
+
         const input = await storage.createInput({
           projectId,
           type: inputType,
           source: "manual",
-          rawText: req.body.rawText.trim(),
+          rawText: originalText,
         });
 
         const taskKey = `${projectId}-${input.id}`;
         processingStatus.set(taskKey, { status: "processing" });
 
-        processInputText(projectId, input.id, input.rawText)
-          .then(() => { processingStatus.set(taskKey, { status: "done" }); })
-          .catch((err) => { processingStatus.set(taskKey, { status: "error", message: err.message }); });
+        (async () => {
+          try {
+            const enrichedText = await enrichTextWithUrls(originalText);
+            if (enrichedText !== originalText) {
+              await storage.updateInput(input.id, { rawText: enrichedText });
+            }
+            await processInputText(projectId, input.id, enrichedText);
+            processingStatus.set(taskKey, { status: "done" });
+          } catch (err: any) {
+            processingStatus.set(taskKey, { status: "error", message: err.message });
+          }
+        })();
 
         res.status(201).json({ ...input, taskKey });
       } else {

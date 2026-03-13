@@ -53,7 +53,7 @@ A web application that helps nurture business projects from RFP to kickoff. Proj
 18. **Profile Page** - Edit display name, email, and password
 
 ## Data Flow
-Input (text/file) → PDF extraction (if PDF) → AI structured extraction (multilingual) → Summary update (multilingual) → DB save
+Input (text/file/URL) → URL content fetch (if URLs detected, up to 5) → PDF extraction (if PDF) → AI structured extraction (multilingual) → Summary update (multilingual) → DB save
 
 ## Auto-Polling (refetchInterval)
 - Project detail page polls every 5s for project data, summary, and structured items until AI processing completes
