@@ -191,7 +191,7 @@ Be specific and actionable.`,
         content: `Previous summary: ${existingSummary ? JSON.stringify(existingSummary) : "None"}
 
 All inputs:
-${allInputTexts.map((t, i) => `--- Input ${i + 1} ---\n${t.substring(0, 3000)}`).join("\n\n")}
+${allInputTexts.map((t, i) => `--- Input ${i + 1} ---\n${t.substring(0, 8000)}`).join("\n\n")}
 
 Structured data by category:
 ${JSON.stringify(itemsByCategory, null, 2)}`,
@@ -240,13 +240,15 @@ Structure for each document:
 
 ## Feature List (Must / Should / Could)
 For each feature:
-- Purpose
+- Purpose and detailed description (include sub-features, data models, screen requirements where available)
 - Target Users
-- Evidence (RFP reference / meeting notes / memos)
+- Evidence (RFP reference / meeting notes / memos / referenced URLs)
 ## Dependencies
 ## Acceptance Criteria
 ## Excluded Items
 ## Unresolved Items (Additional Investigation Needed)
+
+IMPORTANT: When inputs contain referenced URL content, extract and incorporate ALL detailed information from those pages — feature descriptions, data models, user flows, technical specifications, screen requirements, etc. Do not just summarize at a high level; provide the same granularity as the source material.
 
 Always cite sources. Be specific and professional.`;
 
@@ -260,7 +262,7 @@ Always cite sources. Be specific and professional.`;
 ${JSON.stringify(summaryJson, null, 2)}
 
 All Inputs:
-${allInputTexts.map((t, i) => `--- Input ${i + 1} ---\n${t.substring(0, 3000)}`).join("\n\n")}
+${allInputTexts.map((t, i) => `--- Input ${i + 1} ---\n${t.substring(0, 8000)}`).join("\n\n")}
 
 Structured Items:
 ${structuredItems.map((item) => `[${item.category}] (Input #${item.inputId}): ${JSON.stringify(item.valueJson)}`).join("\n")}`,

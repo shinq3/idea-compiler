@@ -199,7 +199,7 @@ async function fetchUrlContent(url: string): Promise<string> {
       .replace(/\s+/g, " ")
       .trim();
 
-    body = body.substring(0, 6000);
+    body = body.substring(0, 10000);
 
     const parts: string[] = [];
     parts.push(`[URL: ${url}]`);
