@@ -1,0 +1,1 @@
+- [Lightsail/RDS database connection](rds-lightsail-db.md) — app connects to AWS RDS via RDS_* secrets (no Replit DB fallback); TLS needs RDS_CA_CERT or rejectUnauthorized:false or it fails with self-signed cert error.

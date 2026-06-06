@@ -6,7 +6,7 @@ A web application that helps nurture business projects from RFP to kickoff. Proj
 ## Architecture
 - **Frontend**: React + TypeScript + Vite + TailwindCSS + shadcn/ui
 - **Backend**: Express.js (Node/TypeScript)
-- **Database**: PostgreSQL (via Drizzle ORM)
+- **Database**: PostgreSQL on AWS Lightsail/RDS (via Drizzle ORM)
 - **AI**: OpenAI API (o4-mini for extraction/summaries, gpt-4o-mini for translations), Anthropic Claude (claude-sonnet-4-6 for slide generation via Replit AI Integrations)
 - **Auth**: JWT (jsonwebtoken + bcrypt), stored in localStorage
 - **File Processing**: pdf-parse for PDF text extraction, multer for file uploads
@@ -136,9 +136,19 @@ shared/
 ```
 
 ## Environment Variables
-- `DATABASE_URL` - PostgreSQL connection string (auto-provisioned)
+- `RDS_ENDPOINT` - Lightsail/RDS host (or host:port); database connection target
+- `RDS_USER` - RDS database user
+- `RDS_PASSWORD` - RDS database password
+- `RDS_DATABASE` - RDS database name (optional, defaults to `ideacompiler`)
+- `RDS_CA_CERT` - Optional CA cert PEM; when set, TLS cert verification is enabled
 - `OPENAI_API_KEY` - OpenAI API key (required)
 - `SESSION_SECRET` - JWT signing secret
+
+## Database
+- App connects directly to AWS Lightsail/RDS PostgreSQL via `RDS_*` secrets (`server/db.ts`).
+- No fallback to the Replit-provisioned database.
+- SSL: uses `RDS_CA_CERT` for verified TLS when provided; otherwise connects without cert verification (RDS CA not in default trust store).
+- Schema pushes (`npm run db:push`) also target RDS via `drizzle.config.ts`.
 
 ## API Endpoints
 ### Auth
