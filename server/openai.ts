@@ -14,9 +14,9 @@ const anthropic = new Anthropic({
   baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
 });
 
-const MODEL = "o4-mini";
+const MODEL = "gpt-4o-mini";
 
-console.log("[openai] Using OPENAI_API_KEY (model: o4-mini)");
+console.log("[openai] Using OPENAI_API_KEY (model: gpt-4o-mini)");
 
 function safeJsonParse(content: string, fallback: any): any {
   try {
