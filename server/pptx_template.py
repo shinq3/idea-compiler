@@ -12,24 +12,21 @@ import io
 from pptx import Presentation
 from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 import os
 
 TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), "../documents/frontier_template1.pptx")
 
-def set_shape_text(shape, text):
-    """シェイプのテキストを置換（フォーマット維持）"""
-    if not shape.has_text_frame:
-        return
-    tf = shape.text_frame
-    for para in tf.paragraphs:
-        for run in para.runs:
-            if run.text:
-                run.text = text
-                return
-    # runがない場合
-    if tf.paragraphs:
-        tf.paragraphs[0].text = text
+# カラーパレット（旧pptxgenjsスタイル）
+C_PRIMARY   = RGBColor(0x66, 0x7e, 0xea)  # 青紫
+C_SECONDARY = RGBColor(0x76, 0x4b, 0xa2)  # 紫
+C_SUCCESS   = RGBColor(0x48, 0xbb, 0x78)  # 緑
+C_WARNING   = RGBColor(0xed, 0x89, 0x36)  # オレンジ
+C_ACCENT    = RGBColor(0xe8, 0x3a, 0x3a)  # テンプレートの赤
+C_TEXT      = RGBColor(0x2d, 0x37, 0x48)  # ダーク
+C_MUTED     = RGBColor(0x71, 0x80, 0x96)  # グレー
+C_WHITE     = RGBColor(0xFF, 0xFF, 0xFF)
+C_CARD_BG   = RGBColor(0xF7, 0xFA, 0xFC)  # カード背景
 
 def replace_placeholder(slide, placeholder, value):
     """スライド内の{placeholder}テキストを置換（runが分割されていても対応）"""
@@ -37,10 +34,8 @@ def replace_placeholder(slide, placeholder, value):
         if not shape.has_text_frame:
             continue
         for para in shape.text_frame.paragraphs:
-            # paragraph全体のテキストで一致確認
             if placeholder not in para.text:
                 continue
-            # run[0]に全テキストをまとめ、残りのrunを空にする
             if not para.runs:
                 continue
             full_text = para.text.replace(placeholder, value)
@@ -49,113 +44,167 @@ def replace_placeholder(slide, placeholder, value):
                 run.text = ""
 
 def duplicate_slide(prs, slide_index):
-    """スライドを複製してプレゼンに追加"""
+    """スライドを複製（画像リレーションシップも正しくコピー）"""
     template = prs.slides[slide_index]
-    blank_layout = template.slide_layout
+    slide = prs.slides.add_slide(template.slide_layout)
 
-    # XMLをコピー
-    from pptx.oxml.ns import qn
-    from lxml import etree
-    import copy
-
-    slide = prs.slides.add_slide(blank_layout)
-
-    # テンプレートのshapeをコピー
     sp_tree = slide.shapes._spTree
-    # 既存のshapeを削除（レイアウトから来るものは残す）
+    # 既存のshapeを削除
     for el in list(sp_tree):
-        if el.tag.endswith('}sp') or el.tag.endswith('}pic') or el.tag.endswith('}graphicFrame') or el.tag.endswith('}grpSp') or el.tag.endswith('}cxnSp'):
+        tag = el.tag.split('}')[-1] if '}' in el.tag else el.tag
+        if tag in ('sp', 'pic', 'graphicFrame', 'grpSp', 'cxnSp'):
             sp_tree.remove(el)
 
-    # テンプレートのshapeをコピー
-    template_sp_tree = template.shapes._spTree
-    for el in template_sp_tree:
-        if el.tag.endswith('}sp') or el.tag.endswith('}pic') or el.tag.endswith('}graphicFrame') or el.tag.endswith('}grpSp') or el.tag.endswith('}cxnSp'):
-            sp_tree.append(copy.deepcopy(el))
+    # テンプレートのshapeをコピー（画像のrIdも修正）
+    for shape in template.shapes:
+        el = copy.deepcopy(shape.element)
+
+        # PICTURE型: 画像パートのリレーションシップを新スライドにコピー
+        if shape.shape_type == 13:  # MSO_SHAPE_TYPE.PICTURE
+            try:
+                blip = el.find('.//{http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing}blip')
+                if blip is None:
+                    blip = el.find('.//{http://schemas.openxmlformats.org/drawingml/2006/main}blip')
+                if blip is None:
+                    ns = 'http://schemas.openxmlformats.org/drawingml/2006/main'
+                    for b in el.iter('{%s}blip' % ns):
+                        blip = b
+                        break
+                if blip is not None:
+                    r_embed_key = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed'
+                    old_rId = blip.get(r_embed_key)
+                    if old_rId:
+                        img_part = template.part.related_part(old_rId)
+                        new_rId = slide.part.relate_to(img_part, RT.IMAGE)
+                        blip.set(r_embed_key, new_rId)
+            except Exception as e:
+                pass  # 画像コピー失敗は無視して続行
+
+        sp_tree.append(el)
 
     return slide
 
+# ===== コンテンツ描画ヘルパー =====
+
+def add_card(slide, x, y, w, h, fill_color=None, shadow=True):
+    """角丸カードを追加"""
+    from pptx.enum.shapes import MSO_SHAPE_TYPE
+    shape = slide.shapes.add_shape(
+        5,  # ROUNDED_RECTANGLE
+        Inches(x), Inches(y), Inches(w), Inches(h)
+    )
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = fill_color or C_CARD_BG
+    shape.line.color.rgb = RGBColor(0xE2, 0xE8, 0xF0)
+    shape.line.width = Pt(0.5)
+    return shape
+
+def add_accent_bar(slide, x, y, h, color=None):
+    """左側アクセントバーを追加"""
+    bar = slide.shapes.add_shape(
+        1,  # RECTANGLE
+        Inches(x), Inches(y), Inches(0.06), Inches(h)
+    )
+    bar.fill.solid()
+    bar.fill.fore_color.rgb = color or C_PRIMARY
+    bar.line.fill.background()
+    return bar
+
+def add_text_box(slide, text, x, y, w, h, font_size=14, bold=False,
+                 color=None, align='left', valign='top', wrap=True):
+    txBox = slide.shapes.add_textbox(
+        Inches(x), Inches(y), Inches(w), Inches(h)
+    )
+    tf = txBox.text_frame
+    tf.word_wrap = wrap
+    para = tf.paragraphs[0]
+    run = para.add_run()
+    run.text = text
+    run.font.size = Pt(font_size)
+    run.font.bold = bold
+    run.font.color.rgb = color or C_TEXT
+    return txBox
+
+def add_bullets_styled(slide, items, x, y, w, h, color=None, bullet_color=None):
+    """スタイル付き箇条書き（旧pptxgenjsスタイル）"""
+    txBox = slide.shapes.add_textbox(Inches(x), Inches(y), Inches(w), Inches(h))
+    tf = txBox.text_frame
+    tf.word_wrap = True
+    for i, item in enumerate(items):
+        para = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        para.space_before = Pt(5)
+        para.space_after = Pt(3)
+        # bullet dot
+        bullet_run = para.add_run()
+        bullet_run.text = "● "
+        bullet_run.font.size = Pt(9)
+        bullet_run.font.color.rgb = bullet_color or C_PRIMARY
+        # text
+        text_run = para.add_run()
+        text_run.text = item
+        text_run.font.size = Pt(14)
+        text_run.font.color.rgb = color or C_TEXT
+
+# ===== レイアウト別コンテンツ追加 =====
+
 def add_content_to_slide(slide, content_type, data):
-    """内容スライドにコンテンツを追加"""
-    from pptx.util import Inches, Pt
-    from pptx.dml.color import RGBColor
-    from pptx.enum.text import PP_ALIGN
-
-    # コンテンツエリア: x=0.75", y=1.9", width=11.83", height=4.8"
-    CONTENT_X = Inches(0.75)
-    CONTENT_Y = Inches(1.9)
-    CONTENT_W = Inches(11.83)
-    CONTENT_H = Inches(4.8)
-
-    TEXT_COLOR = RGBColor(0x2d, 0x37, 0x48)
-    ACCENT_COLOR = RGBColor(0xE8, 0x3A, 0x3A)  # テンプレートの赤
+    CX, CY, CW, CH = 0.75, 1.9, 11.83, 4.8
 
     if content_type == "bullets":
         bullets = data.get("bullets", [])
-        txBox = slide.shapes.add_textbox(CONTENT_X, CONTENT_Y, CONTENT_W, CONTENT_H)
-        tf = txBox.text_frame
-        tf.word_wrap = True
-        for i, item in enumerate(bullets):
-            if i == 0:
-                para = tf.paragraphs[0]
-            else:
-                para = tf.add_paragraph()
-            para.space_before = Pt(6)
-            para.space_after = Pt(2)
-            run = para.add_run()
-            run.text = f"• {item}"
-            run.font.size = Pt(16)
-            run.font.color.rgb = TEXT_COLOR
+        # カード背景
+        add_card(slide, CX, CY, CW, CH)
+        add_accent_bar(slide, CX, CY, CH)
+        add_bullets_styled(slide, bullets,
+                           CX + 0.2, CY + 0.2, CW - 0.4, CH - 0.4,
+                           bullet_color=C_PRIMARY)
 
     elif content_type == "two_column":
         columns = data.get("columns", [])
-        col_w = Inches(5.5)
-        gap = Inches(0.83)
+        col_w = 5.6
+        gap = 0.43
+        colors = [C_PRIMARY, C_SECONDARY]
         for ci, col in enumerate(columns[:2]):
-            cx = CONTENT_X + (col_w + gap) * ci
-            # 列タイトル
-            heading_box = slide.shapes.add_textbox(cx, CONTENT_Y, col_w, Inches(0.5))
+            cx = CX + (col_w + gap) * ci
+            # カード
+            add_card(slide, cx, CY, col_w, CH)
+            add_accent_bar(slide, cx, CY, CH, color=colors[ci])
+            # 見出し
+            heading_box = slide.shapes.add_textbox(
+                Inches(cx + 0.15), Inches(CY + 0.15),
+                Inches(col_w - 0.2), Inches(0.45)
+            )
             htf = heading_box.text_frame
             hpara = htf.paragraphs[0]
             hrun = hpara.add_run()
             hrun.text = col.get("heading", "")
             hrun.font.size = Pt(14)
             hrun.font.bold = True
-            hrun.font.color.rgb = ACCENT_COLOR
-            # 区切り線（細い矩形）
-            line_shape = slide.shapes.add_shape(
-                1,  # MSO_SHAPE_TYPE.RECTANGLE
-                cx, CONTENT_Y + Inches(0.55), col_w, Inches(0.03)
+            hrun.font.color.rgb = colors[ci]
+            # セパレーター
+            sep = slide.shapes.add_shape(
+                1, Inches(cx + 0.15), Inches(CY + 0.65),
+                Inches(col_w - 0.3), Inches(0.02)
             )
-            line_shape.fill.solid()
-            line_shape.fill.fore_color.rgb = ACCENT_COLOR
-            line_shape.line.fill.background()
+            sep.fill.solid()
+            sep.fill.fore_color.rgb = colors[ci]
+            sep.line.fill.background()
             # 箇条書き
-            items_box = slide.shapes.add_textbox(cx, CONTENT_Y + Inches(0.65), col_w, Inches(4.0))
-            itf = items_box.text_frame
-            itf.word_wrap = True
-            for pi, point in enumerate(col.get("points", [])):
-                if pi == 0:
-                    para = itf.paragraphs[0]
-                else:
-                    para = itf.add_paragraph()
-                para.space_before = Pt(5)
-                run = para.add_run()
-                run.text = f"• {point}"
-                run.font.size = Pt(14)
-                run.font.color.rgb = TEXT_COLOR
+            add_bullets_styled(slide, col.get("points", []),
+                               cx + 0.15, CY + 0.75, col_w - 0.3, CH - 0.9,
+                               bullet_color=colors[ci])
 
     elif content_type == "table":
         rows_data = data.get("rows", [])
         if not rows_data:
             return
-        from pptx.util import Inches
         cols = len(rows_data[0])
-        col_w = CONTENT_W // cols
+        n_rows = len(rows_data)
+        tbl_h = min(n_rows * 0.45, CH)
         table = slide.shapes.add_table(
-            len(rows_data), cols,
-            CONTENT_X, CONTENT_Y,
-            CONTENT_W, Inches(min(len(rows_data) * 0.45, 4.5))
+            n_rows, cols,
+            Inches(CX), Inches(CY),
+            Inches(CW), Inches(tbl_h)
         ).table
         for ri, row in enumerate(rows_data):
             for ci, cell_text in enumerate(row):
@@ -167,14 +216,17 @@ def add_content_to_slide(slide, content_type, data):
                 run.font.size = Pt(11)
                 run.font.bold = (ri == 0)
                 if ri == 0:
-                    run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+                    run.font.color.rgb = C_WHITE
                     cell.fill.solid()
-                    cell.fill.fore_color.rgb = ACCENT_COLOR
+                    cell.fill.fore_color.rgb = C_PRIMARY
+                elif ri % 2 == 0:
+                    cell.fill.solid()
+                    cell.fill.fore_color.rgb = RGBColor(0xF7, 0xFA, 0xFC)
+                    run.font.color.rgb = C_TEXT
                 else:
-                    run.font.color.rgb = TEXT_COLOR
+                    run.font.color.rgb = C_TEXT
 
 def update_slide_number(slide, number):
-    """スライド番号を更新"""
     for shape in slide.shapes:
         if not shape.has_text_frame:
             continue
@@ -186,7 +238,6 @@ def update_slide_number(slide, number):
 
 def generate(data):
     prs = Presentation(TEMPLATE_PATH)
-
     cover = data.get("cover", {})
     slides_data = data.get("slides", [])
 
@@ -194,7 +245,6 @@ def generate(data):
     cover_slide = prs.slides[0]
     replace_placeholder(cover_slide, "{Title}", cover.get("title", ""))
     replace_placeholder(cover_slide, "{Message}", cover.get("message", ""))
-    # {Client} / {Project Name} は同一runに入っているため結合して置換
     client_str = f"{cover.get('client', '')} / {cover.get('project_name', '')}"
     replace_placeholder(cover_slide, "{Client} / {Project Name}", client_str)
     replace_placeholder(cover_slide, "{Client}", cover.get("client", ""))
@@ -203,21 +253,14 @@ def generate(data):
 
     # === スライド2以降: 内容ページを複製 ===
     for i, slide_data in enumerate(slides_data):
-        new_slide = duplicate_slide(prs, 1)  # スライド2をテンプレートとして複製
-
+        new_slide = duplicate_slide(prs, 1)
         replace_placeholder(new_slide, "{Key message}", slide_data.get("key_message", ""))
         replace_placeholder(new_slide, "{Page Title}", slide_data.get("page_title", ""))
-
-        # コンテンツを追加
         content_type = slide_data.get("content_type", "bullets")
         add_content_to_slide(new_slide, content_type, slide_data)
-
-        # スライド番号
         update_slide_number(new_slide, i + 2)
 
     # テンプレートのスライド2（空のマスター）を削除
-    from pptx.oxml.ns import qn
-    slide2_rId = prs.slides._sldIdLst[1].get('r:id') or prs.slides._sldIdLst[1].attrib.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id')
     xml_slides = prs.slides._sldIdLst
     xml_slides.remove(xml_slides[1])
 
