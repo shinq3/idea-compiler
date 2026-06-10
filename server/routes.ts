@@ -1202,10 +1202,6 @@ export async function registerRoutes(
       const doc = await storage.getDocument(docId);
       if (!doc) return res.status(404).json({ message: "Document not found" });
 
-      if (!doc.slidesHtml) {
-        return res.status(400).json({ message: "No slides generated yet. Generate slides first." });
-      }
-
       const project = await storage.getProject(doc.projectId);
       if (!project) return res.status(404).json({ message: "Project not found" });
       if (req.user!.role !== "system_admin") {

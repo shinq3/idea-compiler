@@ -102,7 +102,7 @@ export function DocumentsPanel({ projectId, hasSummary }: DocumentsPanelProps) {
     try {
       const token = getToken();
 
-      if (!doc.slidesHtml) {
+      if (format === "slides-html" && !doc.slidesHtml) {
         const genRes = await apiRequest("POST", `/api/documents/${doc.id}/slides`, { locale });
         if (!genRes.ok) {
           const errData = await genRes.json().catch(() => ({ message: "Slide generation failed" }));
