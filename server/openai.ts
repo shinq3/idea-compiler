@@ -717,10 +717,12 @@ export interface TemplateCover {
 export interface TemplateSlide {
   key_message: string;
   page_title: string;
-  content_type: "bullets" | "two_column" | "table";
+  content_type: "bullets" | "two_column" | "table" | "metrics" | "steps";
   bullets?: string[];
   columns?: { heading: string; points: string[] }[];
   rows?: string[][];
+  metrics?: { icon: string; value: string; label: string; description?: string }[];
+  steps?: { title: string; description: string }[];
 }
 
 export interface TemplatePptxData {
@@ -746,25 +748,33 @@ Output a JSON object with this structure:
     {
       "key_message": "short section label (e.g. 'Background', 'Proposal', 'Schedule')",
       "page_title": "full page title sentence",
-      "content_type": "bullets" | "two_column" | "table",
-      "bullets": ["point 1", "point 2", ...],         // for bullets type (5-7 items)
-      "columns": [                                      // for two_column type
-        { "heading": "Left heading", "points": ["a", "b", "c"] },
-        { "heading": "Right heading", "points": ["d", "e", "f"] }
+      "content_type": "bullets" | "two_column" | "table" | "metrics" | "steps",
+      "bullets": ["point 1", ...],                     // bullets type: 5-7 items
+      "columns": [                                      // two_column type
+        { "heading": "Left", "points": ["a", "b", "c"] },
+        { "heading": "Right", "points": ["d", "e", "f"] }
       ],
-      "rows": [["Header1","Header2","Header3"], [...]] // for table type
+      "rows": [["H1","H2","H3"], [...]],               // table type: first row=headers, max 7 rows
+      "metrics": [                                      // metrics type: 2-3 KPI cards
+        { "icon": "📊", "value": "85%", "label": "達成率", "description": "前年比+12%" }
+      ],
+      "steps": [                                        // steps type: 3-4 sequential steps
+        { "title": "Step 1", "description": "説明テキスト" }
+      ]
     }
   ]
 }
 
 RULES:
 - Generate 6-10 content slides (not counting cover)
-- Mix content types: use bullets for explanations, two_column for comparisons/before-after, table for structured data
+- Actively MIX all 5 content types for visual variety:
+  * bullets: explanations, background, issues (5-7 items)
+  * two_column: comparisons, before/after, pros/cons
+  * table: structured data, schedules, feature lists
+  * metrics: KPIs, numbers, results (2-3 cards with emoji icons)
+  * steps: process flows, timelines, implementation phases (3-4 steps)
 - key_message: 2-5 words, section label
 - page_title: clear, action-oriented sentence
-- bullets: 5-7 concise points per slide
-- two_column: 3-5 points each column
-- table: first row = headers, max 7 rows, max 4 columns
 - Write in ${lang === "ja" ? "Japanese" : lang === "vi" ? "Vietnamese" : "English"}
 - Output ONLY valid JSON. No markdown, no explanation.`;
 
