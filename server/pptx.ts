@@ -1,5 +1,10 @@
 import PptxGenJSModule from "pptxgenjs";
-import type { PptxSlideData, PptxElement } from "./openai";
+import type { PptxSlideData, PptxElement, TemplatePptxData } from "./openai";
+import { spawn } from "child_process";
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const PptxGenJS = (PptxGenJSModule as any).default || PptxGenJSModule;
 
@@ -204,4 +209,34 @@ function renderElement(pptx: any, slide: any, el: PptxElement, defaultColor: str
 
 export async function generatePptxBuffer(slidesHtml: string, title: string): Promise<Buffer> {
   return generatePptxFromData([], title);
+}
+
+export async function generatePptxFromTemplate(data: TemplatePptxData): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const scriptPath = path.join(__dirname, "pptx_template.py");
+    const input = JSON.stringify(data);
+
+    const proc = spawn("python3", [scriptPath], { env: process.env });
+    let stdout = "";
+    let stderr = "";
+
+    proc.stdout.on("data", (chunk) => { stdout += chunk.toString(); });
+    proc.stderr.on("data", (chunk) => { stderr += chunk.toString(); });
+
+    proc.on("close", (code) => {
+      if (code !== 0) {
+        console.error("[pptx_template] Python error:", stderr);
+        return reject(new Error(`pptx_template.py exited with code ${code}: ${stderr}`));
+      }
+      try {
+        const buffer = Buffer.from(stdout.trim(), "base64");
+        resolve(buffer);
+      } catch (e) {
+        reject(new Error(`Failed to decode PPTX output: ${e}`));
+      }
+    });
+
+    proc.stdin.write(input);
+    proc.stdin.end();
+  });
 }

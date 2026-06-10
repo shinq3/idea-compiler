@@ -9,9 +9,9 @@ import { PDFParse, VerbosityLevel } from "pdf-parse";
 import { storage } from "./storage";
 import { db } from "./db";
 import { documents as documentsTable } from "@shared/schema";
-import { extractStructuredData, generateSummary, generateDocument, generateSlides, generatePptxData, transcribeAudio, translateInputText } from "./openai";
+import { extractStructuredData, generateSummary, generateDocument, generateSlides, generatePptxData, generateTemplatePptxData, transcribeAudio, translateInputText } from "./openai";
 import { requireAuth, requireRole, requireProjectAccess, hashPassword, verifyPassword, generateToken } from "./auth";
-import { generatePptxFromData } from "./pptx";
+import { generatePptxFromData, generatePptxFromTemplate } from "./pptx";
 
 const uploadDir = path.resolve("uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -1238,12 +1238,11 @@ export async function registerRoutes(
           markdown = doc.contentMd;
         }
 
-        console.log("[pptx] Generating AI-structured PPTX data...");
-        const pptxSlides = await generatePptxData(markdown, doc.type, lang);
-        const docTitle = doc.type === "kickoff" ? "Kickoff Document" : "Feature Proposal";
-        pptxBuffer = await generatePptxFromData(pptxSlides, docTitle);
+        console.log("[pptx] Generating template-based PPTX data...");
+        const templateData = await generateTemplatePptxData(markdown, doc.type, lang);
+        pptxBuffer = await generatePptxFromTemplate(templateData);
         fs.writeFileSync(pptxPath, pptxBuffer);
-        console.log("[pptx] AI-structured PPTX generated:", pptxBuffer.length, "bytes");
+        console.log("[pptx] Template-based PPTX generated:", pptxBuffer.length, "bytes");
       }
 
       res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.presentationml.presentation");

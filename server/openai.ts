@@ -703,3 +703,90 @@ Output ONLY valid JSON array. No markdown, no code fences, no explanation.`;
 
   return slides as PptxSlideData[];
 }
+
+// ===== テンプレートベースPPTX用 =====
+
+export interface TemplateCover {
+  title: string;
+  message: string;
+  client: string;
+  project_name: string;
+  date: string;
+}
+
+export interface TemplateSlide {
+  key_message: string;
+  page_title: string;
+  content_type: "bullets" | "two_column" | "table";
+  bullets?: string[];
+  columns?: { heading: string; points: string[] }[];
+  rows?: string[][];
+}
+
+export interface TemplatePptxData {
+  cover: TemplateCover;
+  slides: TemplateSlide[];
+}
+
+export async function generateTemplatePptxData(documentMarkdown: string, documentType: string, lang: string): Promise<TemplatePptxData> {
+  const today = new Date().toLocaleDateString(lang === "ja" ? "ja-JP" : "en-US", { year: "numeric", month: "long", day: "numeric" });
+
+  const systemPrompt = `You are a professional presentation designer. Given a document, generate structured JSON for a PowerPoint presentation using a corporate template.
+
+Output a JSON object with this structure:
+{
+  "cover": {
+    "title": "presentation main title",
+    "message": "one compelling tagline or subtitle",
+    "client": "client company name (extract from doc or use empty string)",
+    "project_name": "project name",
+    "date": "${today}"
+  },
+  "slides": [
+    {
+      "key_message": "short section label (e.g. 'Background', 'Proposal', 'Schedule')",
+      "page_title": "full page title sentence",
+      "content_type": "bullets" | "two_column" | "table",
+      "bullets": ["point 1", "point 2", ...],         // for bullets type (5-7 items)
+      "columns": [                                      // for two_column type
+        { "heading": "Left heading", "points": ["a", "b", "c"] },
+        { "heading": "Right heading", "points": ["d", "e", "f"] }
+      ],
+      "rows": [["Header1","Header2","Header3"], [...]] // for table type
+    }
+  ]
+}
+
+RULES:
+- Generate 6-10 content slides (not counting cover)
+- Mix content types: use bullets for explanations, two_column for comparisons/before-after, table for structured data
+- key_message: 2-5 words, section label
+- page_title: clear, action-oriented sentence
+- bullets: 5-7 concise points per slide
+- two_column: 3-5 points each column
+- table: first row = headers, max 7 rows, max 4 columns
+- Write in ${lang === "ja" ? "Japanese" : lang === "vi" ? "Vietnamese" : "English"}
+- Output ONLY valid JSON. No markdown, no explanation.`;
+
+  const response = await openai.chat.completions.create({
+    model: MODEL,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: `Create template-based PPTX JSON for this ${documentType === "kickoff" ? "Kickoff Document" : "Feature Proposal"}:\n\n${documentMarkdown}` },
+    ],
+    max_completion_tokens: 8000,
+  });
+
+  const raw = response.choices[0]?.message?.content || "{}";
+  const cleaned = raw.replace(/^```json?\n?/i, "").replace(/\n?```$/i, "").trim();
+  const result = safeJsonParse(cleaned, null);
+
+  if (!result || !result.cover || !Array.isArray(result.slides)) {
+    return {
+      cover: { title: "Presentation", message: "", client: "", project_name: documentType, date: today },
+      slides: [{ key_message: "Overview", page_title: "Document Overview", content_type: "bullets", bullets: ["Content could not be generated"] }],
+    };
+  }
+
+  return result as TemplatePptxData;
+}
