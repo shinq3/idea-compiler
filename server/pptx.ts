@@ -213,7 +213,8 @@ export async function generatePptxBuffer(slidesHtml: string, title: string): Pro
 
 export async function generatePptxFromTemplate(data: TemplatePptxData): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    const scriptPath = path.join(__dirname, "pptx_template.py");
+    // dist/ から実行されるため、プロジェクトルートの server/ を参照
+    const scriptPath = path.join(__dirname, "..", "server", "pptx_template.py");
     const input = JSON.stringify(data);
 
     const proc = spawn("python3", [scriptPath], { env: process.env });
